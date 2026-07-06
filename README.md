@@ -1,4 +1,6 @@
-# Aviator Predictor v2.5.7
+# Aviator Predictor APk v2.5.7
+
+
 
 Real-time Aviator data analysis dashboard with odds visualization for Android devices.
 
