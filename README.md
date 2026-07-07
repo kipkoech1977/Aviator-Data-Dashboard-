@@ -1,4 +1,7 @@
-# aviatorpredictor-2.5.7.apk
+
+aviatorpredictor-2.5.7.apk
+
+
  
 
 
@@ -44,6 +47,13 @@ Real-time Aviator data analysis dashboard with odds visualization for Android de
 - Android 5.0+ (API 21+)
 - 50MB free storage space
 - Internet connection (for real-time data)
+[INFINIX_QUICK_INSTALL.md](https://github.com/user-attachments/files/29760674/INFINIX_QUICK_INSTALL.md)
+[INFINIX_QUICK_INSTALL.md](https://github.com/user-attachments/files/29760490/INFINIX_QUICK_INSTALL.md)
+
+[INFINIX_QUICK_INSTALL.md](https://github.com/user-attachments/files/29760469/INFINIX_QUICK_INSTALL.md)
+[INFINIX_QUICK_INSTALL.md](https://github.com/user-attachments/files/29760454/INFINIX_QUICK_INSTALL.md)
+[INFINIX_QUICK_INSTALL.md](https://github.com/user-attachments/files/29760443/INFINIX_QUICK_INSTALL.md)
+[INFINIX_QUICK_INSTALL.md](https://github.com/user-attachments/files/29760429/INFINIX_QUICK_INSTALL.md)
 
 ## 🚀 Installation
 
@@ -66,7 +76,7 @@ venv\Scripts\activate
 # On macOS/Linux:
 source venv/bin/activate
 
-# Install requirements
+# Install reAndroidndroiduirements
 pip install -r requirements.txt
 ```
 
