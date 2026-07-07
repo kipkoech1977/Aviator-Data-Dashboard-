@@ -1,5 +1,5 @@
 
-aviatorpredictor-2.5.7.apk
+aviatorpredictor-2.5.7-debug.apk
 
 
  
@@ -528,6 +528,6 @@ buildozer android debug
 
 # Deploy to device
 buildozer android debug deploy run
-```
+
 
 Enjoy your Aviator Predictor! 🎉
