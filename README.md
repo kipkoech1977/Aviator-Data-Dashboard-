@@ -1,6 +1,6 @@
 
-aviatorpredictorv
-2.5.7-debug.apk
+aviatorpredictor v2.5.7.apk
+
 
 
  
