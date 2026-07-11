@@ -1,5 +1,4 @@
-
-aviatorpredictor v2.5.7.apk
+Aviator Predictor v2.5.7
 
 
 
