@@ -1,11 +1,11 @@
-name: Python APK Build
+name: Build Android APK
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" ] # Change to "master" if your branch is named master
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch:
+  workflow_dispatch: # This adds a manual "Run workflow" button in GitHub Actions
 
 jobs:
   build:
@@ -18,62 +18,24 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
+        python-version: '3.11'
 
-    # 1. Install all required Ubuntu packages for Buildozer compilation
-    - name: Install System Dependencies
+    - name: Install System Dependencies and AIDL
       run: |
         sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          git \
-          ffmpeg \
-          libsdl2-dev \
-          libsdl2-image-dev \
-          libsdl2-mixer-dev \
-          libsdl2-ttf-dev \
-          libportmidi-dev \
-          libswscale-dev \
-          libavformat-dev \
-          libavcodec-dev \
-          zlib1g-dev \
-          libgstreamer1.0-dev \
-          gstreamer1.0-plugins-base \
-          gstreamer1.0-plugins-good \
-          libffi-dev \
-          libssl-dev \
-          libgtk-3-dev \
-          unzip \
-          zip \
-          openjdk-17-jdk \
-          autoconf \
-          libtool \
-          pkg-config \
-          lld \
-          cmake
+        sudo apt-get install -y build-essential ccache git libffi-dev libssl-dev aidl libstdc++6
 
-    # 2. Install Buildozer and Cython
-    - name: Install Python Dependencies
+    - name: Install Buildozer and Cython
       run: |
         pip install --upgrade pip
-        pip install Cython==0.29.36 buildozer virtualenv
+        pip install buildozer cython
 
-    # 3. Automatically accept Android SDK/NDK licenses to prevent freezes/fails
-    - name: Accept Android SDK Licenses
-      run: |
-        mkdir -p ~/.android
-        touch ~/.android/repositories.cfg
-        yes | sdkmanager --licenses || true
-
-    # 4. Run Buildozer in android debug mode
     - name: Build APK with Buildozer
       run: |
-        buildozer android debug
+        yes | buildozer android debug
 
-    # 5. Upload the generated APK artifact as a ZIP file
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: python-android-apk
-        path: bin/*.apk
-        retention-days: 7
+        path: .bin/*.apk
