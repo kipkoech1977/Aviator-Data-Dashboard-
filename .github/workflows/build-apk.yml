@@ -1,46 +1,41 @@
-name: Build Android APKs
+name: Build Android APK
 
 on:
   push:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
-  workflow_dispatch: # Allows you to manually trigger the build from the GitHub Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Fetch the latest codebase
     - name: Checkout Source Code
       uses: actions/checkout@v4
 
-    # 2. Set up Java Environment (Required for Gradle)
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
-        cache: 'gradle' # Automatically caches gradle dependencies to speed up future builds
+        cache: 'gradle'
 
-    # 3. Setup Android SDK & Build Tools (Fixes the AIDL error)
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
+      with:
+        # Pre-installs basic tools so gradle doesn't fail looking for them
+        packages: 'platform-tools build-tools;34.0.0 platforms;android-34'
 
-    # 4. Grant execute permission to Gradle Wrapper
     - name: Grant Execute Permission to Gradle
       run: chmod +x gradlew
 
-    # 5. Compile and Build the Debug APK
     - name: Build Debug APK
-      env:
-        ANDROID_HOME: ${{ steps.setup-android.outputs.sdk-path }}
       run: ./gradlew assembleDebug
 
-    # 6. Save the generated APK as a downloadable artifact
     - name: Upload Finished APK
       uses: actions/upload-artifact@v4
       with:
         name: app-debug-apk
-        path: app/build/outputs/apk/debug/app-debug.apk
+        path: '**/build/outputs/apk/debug/*.apk' # Wildcard path avoids strict folder name errors
