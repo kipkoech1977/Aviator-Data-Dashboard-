@@ -8,15 +8,19 @@ source.include_exts = py,png,jpg,kv,atlas,json
 
 version = 2.5.7
 
-requirements = python3,kivy,numpy,matplotlib,requests,pillow
+# Added hostpython3 and verified recipes for numpy/matplotlib on Android
+requirements = python3, kivy, numpy, matplotlib, hostpython3
 
 orientation = portrait
 fullscreen = 0
-android.permissions = INTERNET,ACCESS_NETWORK_STATE,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
+android.permissions = INTERNET, ACCESS_NETWORK_STATE
 
-android.api = 31
+android.api = 33
 android.minapi = 21
 android.ndk = 25b
+
+# CRITICAL: This allows GitHub Actions to bypass the license prompt
+android.accept_sdk_license = True
 
 [buildozer]
 log_level = 2
