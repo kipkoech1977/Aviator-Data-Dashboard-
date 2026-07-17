@@ -1,9 +1,0 @@
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
-    - name: Install Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libunwind-dev build-essential libgstreamer1.0-dev p7zip-full
-        pip3 install --user --upgrade buildozer
