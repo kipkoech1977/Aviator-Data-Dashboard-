@@ -9,7 +9,7 @@ source.include_exts = py,png,jpg,kv,atlas,json
 version = 2.5.7
 
 # Added hostpython3 and verified recipes for numpy/matplotlib on Android
-requirements = python3, kivy, numpy, matplotlib, hostpython3
+requirements = python3,requests,urllib3,certifi,idna
 
 orientation = portrait
 fullscreen = 0
