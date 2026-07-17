@@ -1,43 +1,61 @@
-name: Buildozer Python APK
+[app]
 
-on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch: # This allows you to manually trigger the build anytime
+# (str) Title of your application
+title = Avi App
 
-jobs:
-  build:
-    runs-on: ubuntu-22.04
+# (str) Package name (should be all lowercase, letters/numbers only, no spaces)
+package.name = aviapp
 
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+# (str) Package domain (needed for android packaging)
+package.domain = com.kipkoech1977
 
-    # Sets up a clean Python environment required by Buildozer
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+# (str) Source code directory where your main.py is located
+source.dir = .
 
-    # Installs the precise development tools Buildozer needs to compile successfully
-    - name: Install System Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libunwind-dev
-        sudo apt-get install -y build-essential git python3-dev ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
-        sudo apt-get install -y libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav libgstreamer-plugins-base1.0-dev
-        sudo apt-get install -y p7zip-full ccache libffi-dev libssl-dev autoconf automake libtool pkg-config
-        pip3 install --upgrade pip
-        pip3 install buildozer cython virtualenv
+# (list) Source files to include (comma separated)
+source.include_exts = py,png,jpg,kv,atlas
 
-    # Instructs Buildozer to build the APK
-    - name: Build APK with Buildozer
-      run: |
-        buildozer android debug
+# (str) Application versioning
+version = 0.1
 
-    # Automatically saves the .apk file into your GitHub account so you can download it
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: python-built-apk
-        path: bin/*.apk
+# (list) Application requirements
+# comma separated e.g. requirements = sqlite3,kivy,kivymd
+requirements = python3,kivy
+
+# (str) Supported orientations (valid options: landscape, portrait, all)
+orientation = portrait
+
+# ----------------------------------------------------
+# Android specific configuration
+# ----------------------------------------------------
+
+# (bool) Indicate if the application should be fullscreen or not
+fullscreen = 1
+
+# (list) Permissions
+# android.permissions = INTERNET
+
+# (int) Target Android API, should be as high as possible.
+android.api = 33
+
+# (int) Minimum API your APK will support.
+android.minapi = 21
+
+# (str) Android NDK version to use
+android.ndk = 25b
+
+# (bool) Use private storage for data (True or False)
+android.private_storage = True
+
+# (str) Format used to package the app for release (apk or aab)
+android.archs = armeabi-v7a, arm64-v8a
+
+# (bool) Allow backup
+android.allow_backup = True
+
+[buildozer]
+# (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
+log_level = 2
+
+# (int) Display warning if buildozer is run as root (0 = False, 1 = True)
+warn_on_root = 1
