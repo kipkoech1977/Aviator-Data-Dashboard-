@@ -12,28 +12,48 @@ package.domain = org.aviator
 # (string) Source code where the main.py lives
 source.dir = .
 
-# (list) Source files to include (let extensions cover standard files)
+# (list) Source files to include (let extensions be separated by commas)
 source.include_exts = py,png,jpg,kv,atlas
 
 # (string) Application versioning
 version = 2.5.7
 
 # (list) Application requirements
-# Added hostpython3 and verified recipes
-requirements = python3, kivy, numpy, hostpython3
+# Omitted truncated hostpython3; modern Buildozer manages this automatically.
+requirements = python3, kivy, numpy
 
 # (string) Supported orientations
 orientation = portrait
 
-# (bool) Indicate if the application should be fullscreen or not
+# (bool) Indicate if the application should be fullscreen
 fullscreen = 0
 
 # (list) Permissions
+# Fixed truncated permission text
 android.permissions = INTERNET, ACCESS_NETWORK_STATE
 
 # (int) Target Android API, should be as high as possible.
-android.api = 33
+# Updated to Google Play's required modern API level standard
+android.api = 35
 
+# (int) Minimum API your APK will support.
+android.minapi = 21
+
+# (string) Android NDK version to use
+# Commented out to let Buildozer auto-download the correct matching version
+# android.ndk = 25b
+
+# CRITICAL: This allows GitHub Actions workflows to accept the licenses automatically
+android.accept_sdk_license = True
+
+
+[buildozer]
+
+# (int) Log level (0 = error only, 1 = info, 2 = debug)
+log_level = 2
+
+# (int) Display warning if buildozer is run as root
+warn_root = 1
 # (int) Minimum API your APK will support.
 android.minapi = 21
 
