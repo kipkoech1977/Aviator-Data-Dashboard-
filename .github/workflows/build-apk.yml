@@ -31,7 +31,6 @@ jobs:
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
-          # Force resolution of broken dependency chains automatically
           sudo apt-get install -f -y
           sudo apt-get install -y --no-install-recommends \
             build-essential \
@@ -61,8 +60,10 @@ jobs:
           pip install --upgrade pip
           pip install Cython==0.29.33 buildozer wheel
 
-      - name: Automate Build and Accept Android Licenses
+      - name: Automate Build and Override NDK Warnings
         run: |
+          # Inject NDK flag to prevent simple code warnings from stopping compilation
+          export CFLAGS="-Wno-error=implicit-function-declaration"
           yes | buildozer -v android debug
         timeout-minutes: 40
 
