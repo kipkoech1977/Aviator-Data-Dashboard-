@@ -28,12 +28,51 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
-      - name: Install system dependencies
+      - name: Install Linux dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential \
             ccache \
+            git \
+            libffi-dev \
+            libssl-dev \
+            libgstreamer1.0-dev \
+            gstreamer1.0-plugins-base \
+            gstreamer1.0-plugins-good \
+            libsqlite3-dev \
+            sqlite3 \
+            bzip2 \
+            libbz2-dev \
+            zlib1g-dev \
+            openssl \
+            libgdbm-dev \
+            libncursesw5-dev \
+            libncurses5-dev \
+            xz-utils \
+            tk-dev \
+            libxml2-dev \
+            libxmlsec1-dev \
+            uuid-dev \
+            libreadline-dev \
+            openjdk-17-jdk
+
+      - name: Install Buildozer and Cython
+        run: |
+          pip install --upgrade pip
+          pip install Cython==0.29.33 buildozer wheel
+
+      - name: Automate Build and Accept Android Licenses
+        run: |
+          # Automatically answer 'y' to any terminal prompt (including Android SDK licenses)
+          yes | buildozer -v android debug
+        timeout-minutes: 40
+
+      - name: Upload Finished APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: bin/*.apk
             git \
             libffi-dev \
             libssl-dev \
