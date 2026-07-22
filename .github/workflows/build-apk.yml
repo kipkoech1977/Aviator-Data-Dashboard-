@@ -28,12 +28,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
-      - name: Install Linux dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -f -y
-          sudo apt-get install -y --no-install-recommends \
-            build-essential \
+      - name: Build Android APK with Official Buildozer Action
+        uses: kivy/buildozer-action@master
+        with:
+          command: android debug
             ccache \
             git \
             libffi-dev \
