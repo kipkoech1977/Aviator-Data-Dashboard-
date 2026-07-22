@@ -64,7 +64,6 @@ jobs:
 
       - name: Automate Build and Accept Android Licenses
         run: |
-          # Automatically answer 'y' to any terminal prompt (including Android SDK licenses)
           yes | buildozer -v android debug
         timeout-minutes: 40
 
@@ -73,32 +72,3 @@ jobs:
         with:
           name: package
           path: bin/*.apk
-            git \
-            libffi-dev \
-            libssl-dev \
-            libgstreamer1.0-dev \
-            gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good \
-            libsqlite3-dev \
-            sqlite3 \
-            bzip2 \
-            libbz2-dev \
-            zlib1g-dev \
-            openssl \
-            libgdbm-dev \
-            libncursesw5-dev \
-            libncurses5-dev \
-            xz-utils \
-            tk-dev \
-            libxml2-dev \
-            libxmlsec1-dev \
-            uuid-dev \
-            libreadline-dev \
-            openjdk-17-jdk
-
-      - name: Build Android APK with Buildozer
-        uses: ArtemSaves/buildozer-action@v1
-        timeout-minutes: 30  # Gives Numpy enough time to safely compile
-        with:
-          buildozer_version: master
-          command: android debug
