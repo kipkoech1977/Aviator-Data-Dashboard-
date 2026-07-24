@@ -16,11 +16,14 @@ jobs:
       with:
         python-version: '3.10'
 
-    # This step creates a default buildozer.spec file if it doesn't exist
-    - name: Initialize Buildozer Spec
+    # Fix: This automatically answers the interactive prompt and targets requirements
+    - name: Auto-generate and configure buildozer.spec
       run: |
         pip install buildozer
-        buildozer init
+        yes | buildozer init
+        
+        # This replaces the default requirement to include kivy and python3
+        sed -i 's/^requirements = .*$/requirements = python3,kivy/' buildozer.spec
 
     - name: Build with Buildozer
       uses: ArtemSBulgakov/buildozer-action@v1
