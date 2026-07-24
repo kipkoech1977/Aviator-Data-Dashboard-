@@ -1,27 +1,19 @@
 [app]
-title = Aviator Predictor
-package.name = aviatorpredictor
-package.domain = org.aviator
+title = MyApp
+package.name = myapp
+package.domain = org.example
 
 source.dir = .
-source.include_exts = py,png,jpg,kv,atlas
+source.include_exts = py,kv,png,jpg,json
 
-version = 2.5.7
+version = 1.0
 
-# Added hostpython3 and verified recipes
-requirements = python3, kivy, numpy
+requirements = python3,kivy
 
 orientation = portrait
-fullscreen = 0
-android.permissions = INTERNET, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION
 
 android.api = 33
 android.minapi = 24
 android.ndk = 25b
 
-# CRITICAL: This allows GitHub Actions to accept SDK license
-android.accept_sdk_license = True
-
-[buildozer]
 log_level = 2
-warn_on_root = 1
