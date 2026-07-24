@@ -45,6 +45,13 @@ jobs:
           sed -i 's/#android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
         fi
 
+    - name: Pre-Accept Android SDK Licenses
+      run: |
+        # Force create the license directory and accept all licenses to prevent build-tools crashes
+        mkdir -p $HOME/.buildozer/android/platform/android-sdk/licenses
+        echo -e "244d2d9b8dac2dda97f54c86d65b2db74c1856bb\n85c5f0277334d56eb37f2d350b3c2253e6f990b9\n2110ea85b99700b9d974358d5462944d614b88e0" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+        echo -e "84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-googletv-license
+
     - name: Compile Application with Buildozer
       run: |
         buildozer android debug
