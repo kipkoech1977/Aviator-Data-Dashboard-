@@ -1,40 +1,21 @@
-name: Build Kivy APK
-
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-22.04
-
-    steps:
-      - name: Checkout repository code
-        uses: actions/checkout@v4
-
-      - name: Set up Python environment
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Cache Buildozer global directory
-        uses: actions/cache@v4
-        with:
-          path: ~/.buildozer
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            ${{ runner.os }}-buildozer-
-
-      - name: Build Android APK with Official Buildozer Action
-        uses: kivy/buildozer-action@master
-        with:
-          command: android debug
-            ccache \
-            git \
-            libffi-dev \
+- name: Install system packages
+  run: |
+    sudo apt-get update
+    sudo apt-get install -y \
+      autoconf \
+      automake \
+      libtool \
+      libltdl-dev \
+      pkg-config \
+      m4 \
+      git \
+      zip \
+      unzip \
+      openjdk-17-jdk \
+      python3-pip \
+      zlib1g-dev \
+      libffi-dev \
+      libssl-dev            libffi-dev \
             libssl-dev \
             libsqlite3-dev \
             sqlite3 \
