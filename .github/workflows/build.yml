@@ -28,9 +28,17 @@ jobs:
 
     - name: Run Complete Kivy Android Build Suite
       run: |
+        echo "Clearing system package locks..."
+        sudo rm -f /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock
+        
         echo "Installing Linux dependencies..."
         sudo apt-get update --fix-missing || true
-        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev libgstreamer1.0-dev cmake gettext
+        
+        # Safe retry mechanism for dependencies to avoid Exit Code 100
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+          git zip unzip autoconf libtool pkg-config zlib1g-dev \
+          libncurses5-dev libssl-dev libgstreamer1.0-dev cmake gettext || \
+        (sleep 5 && sudo apt-get install -y --no-install-recommends git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev libgstreamer1.0-dev cmake gettext)
 
         echo "Installing Android SDK and NDK components..."
         mkdir -p $HOME/Android/Sdk/cmdline-tools
