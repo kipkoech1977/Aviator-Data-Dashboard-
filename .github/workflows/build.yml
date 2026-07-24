@@ -1,27 +1,109 @@
-      - name: Fix Buildozer Spec File
-        run: |
-          python3 -c "
-          import os
-          spec_file = 'buildozer.spec'
-          correct_header = '[buildozer]\n'
-          if os.path.exists(spec_file):
-              with open(spec_file, 'r') as f:
-                  content = f.read()
-              if '[buildozer]' not in content:
-                  fixed_content = correct_header + content.lstrip()
-                  with open(spec_file, 'w') as f:
-                      f.write(fixed_content)
-          else:
-              import subprocess
-              subprocess.run(['buildozer', 'init'])
-          "
+#!/usr/bin/env bash
 
-      - name: Build Android App
-        run: buildozer android debug
-          buildozer android debug
+# ==============================================================================
+# Kivy APK Build Automation Script (python-for-android workflow)
+# ==============================================================================
+# This script automates installing dependencies, configuring the Android SDK/NDK,
+# and invoking 'python-for-android' directly without Buildozer.
+#
+# INSTRUCTIONS:
+# 1. Save this script as 'build_kivy.sh' in your workspace.
+# 2. Make it executable: chmod +x build_kivy.sh
+# 3. Create your Kivy project folder and name your entry script 'main.py'.
+# 4. Run it: ./build_kivy.sh
+# ==============================================================================
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: APK
-          path: bin/*.apk
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+# --- Configuration Variables ---
+PROJECT_DIR="$HOME/my_kivy_project"
+SDK_DIR="$HOME/Android/Sdk"
+NDK_VERSION="25.2.9519653"
+NDK_DIR="$SDK_DIR/ndk/$NDK_VERSION"
+ANDROID_API="33"
+BUILD_TOOLS_VERSION="33.0.2"
+
+APP_NAME="My Kivy App"
+APP_PACKAGE="org.example.kivyapp"
+APP_VERSION="1.0"
+# Requirements list: separate multiple Python libraries with commas (e.g., python3,kivy,requests)
+APP_REQUIREMENTS="python3,kivy"
+# Target architecture (e.g., arm64-v8a, armeabi-v7a)
+APP_ARCH="arm64-v8a"
+
+echo "=== [1/5] Creating Dummy Project Directory if missing ==="
+if [ ! -d "$PROJECT_DIR" ]; then
+    mkdir -p "$PROJECT_DIR"
+    cat << 'EOF' > "$PROJECT_DIR/main.py"
+import kivy
+kivy.require('2.0.0')
+from kivy.app import App
+from kivy.uix.button import Button
+
+class TestApp(App):
+    def build(self):
+        return Button(text='Hello World from Kivy (No Buildozer!)')
+
+if __name__ == '__main__':
+    TestApp().run()
+EOF
+    echo "Created a basic template Kivy app at: $PROJECT_DIR/main.py"
+else
+    echo "Using existing project directory at: $PROJECT_DIR"
+fi
+
+echo "=== [2/5] Installing System Dependencies ==="
+sudo apt update
+sudo apt install -y git zip unzip openjdk-17-jdk python3-pip python3-dev \
+    python3-setuptools autoconf libtool pkg-config zlib1g-dev \
+    libncurses5-dev libssl-dev libgstreamer1.0-dev cmake
+
+echo "=== [3/5] Setting up Android SDK and NDK ==="
+mkdir -p "$SDK_DIR/cmdline-tools"
+
+# Download official Android CLI tools if not present
+if [ ! -d "$SDK_DIR/cmdline-tools/latest" ]; then
+    echo "Downloading Android Command Line Tools..."
+    curl -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+    mkdir -p tmp_cmdline
+    unzip -q cmdline-tools.zip -d tmp_cmdline
+    mv tmp_cmdline/cmdline-tools "$SDK_DIR/cmdline-tools/latest"
+    rm -rf tmp_cmdline cmdline-tools.zip
+fi
+
+# Accept licenses and install platform tools / NDK
+echo "Accepting licenses and fetching Android components..."
+yes | "$SDK_DIR/cmdline-tools/latest/bin/sdkmanager" --licenses
+"$SDK_DIR/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-$ANDROID_API" "build-tools;$BUILD_TOOLS_VERSION" "ndk;$NDK_VERSION"
+
+# Set up local environment variables for the execution context
+export ANDROIDSDK="$SDK_DIR"
+export ANDROIDNDK="$NDK_DIR"
+export PATH="$ANDROIDSDK/platform-tools:$PATH"
+
+echo "=== [4/5] Installing python-for-android and Pip Modules ==="
+pip3 install --user --upgrade pip
+pip3 install --user cython python-for-android
+
+# Ensure local user binaries are in the path for this execution context
+export PATH="$HOME/.local/bin:$PATH"
+
+echo "=== [5/5] Compiling APK using python-for-android ==="
+p4a apk \
+  --sdk-dir="$ANDROIDSDK" \
+  --ndk-dir="$ANDROIDNDK" \
+  --android-api="$ANDROID_API" \
+  --ndk-version="$NDK_VERSION" \
+  --private "$PROJECT_DIR" \
+  --package="$APP_PACKAGE" \
+  --name="$APP_NAME" \
+  --version="$APP_VERSION" \
+  --bootstrap=sdl2 \
+  --requirements="$APP_REQUIREMENTS" \
+  --arch="$APP_ARCH"
+
+echo "=============================================================================="
+echo " SUCCESS: Process Finished!"
+echo " Check your current directory for the compiled .apk file."
+echo "=============================================================================="
