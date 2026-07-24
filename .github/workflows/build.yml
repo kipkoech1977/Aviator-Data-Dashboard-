@@ -26,16 +26,22 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Configure Linux Package Installer
+    - name: Fix System Repositories and System Locks
       run: |
-        sudo rm -f /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock
-        sudo apt-get update --fix-missing
+        echo "Clearing locked frontend system records..."
+        sudo rm -rf /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/cache/apt/archives/lock
+        
+        echo "Switching archive mirrors to alternative stable server..."
+        sudo sed -i 's/http:\/\/://ubuntu.com:\/\/://ubuntu.com' /etc/apt/sources.list
+        
+        sudo apt-get clean
+        sudo apt-get update --fix-missing || true
 
-    - name: Install Linux Build Dependencies
+    - name: Install System Build Prerequisites
       run: |
         sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-          git zip unzip autoconf libtool pkg-config zlib1g-dev \
-          libncurses5-dev libssl-dev libgstreamer1.0-dev cmake gettext
+          build-essential git zip unzip autoconf libtool pkg-config zlib1g-dev \
+          libncurses5-dev libssl-dev libgstreamer1.0-dev cmake gettext libffi-dev gperf
 
     - name: Download and Install Android SDK & NDK
       run: |
@@ -75,36 +81,6 @@ jobs:
           --arch=arm64-v8a
 
     - name: Export and Save APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Kivy-Android-APK
-        path: ./*.apk
-        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-          git zip unzip autoconf libtool pkg-config zlib1g-dev \
-          libncurses5-dev libssl-dev libgstreamer1.0-dev cmake gettext || \
-        (sleep 5 && sudo apt-get install -y --no-install-recommends git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev libgstreamer1.0-dev cmake gettext)
-
-        echo "Installing Android SDK and NDK components..."
-        mkdir -p $HOME/Android/Sdk/cmdline-tools
-        curl -o cmdline-tools.zip https://google.com
-        mkdir -p tmp_cmdline
-        unzip -q cmdline-tools.zip -d tmp_cmdline
-        mv tmp_cmdline/cmdline-tools $HOME/Android/Sdk/cmdline-tools/latest
-        rm -rf tmp_cmdline cmdline-tools.zip
-        yes | $HOME/Android/Sdk/cmdline-tools/latest/bin/sdkmanager --licenses
-        $HOME/Android/Sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653"
-
-        echo "Installing core python-for-android tools..."
-        pip install --upgrade pip
-        pip install cython python-for-android
-
-        echo "Compiling final application binary..."
-        export ANDROIDSDK="$HOME/Android/Sdk"
-        export ANDROIDNDK="$HOME/Android/Sdk/ndk/25.2.9519653"
-        export PATH="$ANDROIDSDK/platform-tools:$HOME/.local/bin:$PATH"
-        p4a apk --sdk-dir="$ANDROIDSDK" --ndk-dir="$ANDROIDNDK" --android-api=33 --ndk-version=25.2.9519653 --private . --package=org.example.kivyapp --name="My Kivy App" --version=1.0 --bootstrap=sdl2 --requirements=python3,kivy --arch=arm64-v8a
-
-    - name: Save Compiled APK File
       uses: actions/upload-artifact@v4
       with:
         name: Kivy-Android-APK
