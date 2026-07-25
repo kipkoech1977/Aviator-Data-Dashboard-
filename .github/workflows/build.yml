@@ -80,6 +80,50 @@ jobs:
       with:
         name: Aviator-Predictor-Debug-APK
         path: bin/*.apk
+          libavformat-dev \
+          libavcodec-dev \
+          zlib1g-dev \
+          libsqlite3-dev \
+          sqlite3 \
+          bzip2 \
+          libbz2-dev \
+          libssl-dev \
+          openssl \
+          libgdbm-dev \
+          libgdbm-compat-dev \
+          liblzma-dev \
+          libreadline-dev \
+          libncursesw5-dev \
+          libffi-dev \
+          uuid-dev \
+          tar \
+          unzip \
+          zip \
+          openjdk-17-jdk \
+          autoconf \
+          automake \
+          libtool \
+          pkg-config \
+          ccache \
+          clang
+
+    - name: Install Buildozer and Dependencies
+      run: |
+        pip install --upgrade pip
+        pip install Cython==0.29.33
+        pip install buildozer
+
+    - name: Run Buildozer Compilation
+      run: |
+        buildozer android debug
+      env:
+        BUILDOZER_WARN_ON_ROOT: 0
+
+    - name: Upload Finished APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Aviator-Predictor-Debug-APK
+        path: bin/*.apk
         pip install Cython==0.29.33
         pip install buildozer
 
