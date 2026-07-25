@@ -36,7 +36,7 @@ android.permissions = INTERNET, ACCESS_NETWORK_STATE
 android.api = 33
 
 # (int) Minimum API your APK will support.
-android.minapi = 21
+android.minapi = 24
 
 # (string) Android NDK version to use
 android.ndk = 25b
