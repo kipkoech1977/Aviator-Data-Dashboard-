@@ -80,3 +80,17 @@ jobs:
       with:
         name: Aviator-Predictor-Debug-APK
         path: bin/*.apk
+        pip install Cython==0.29.33
+        pip install buildozer
+
+    - name: Run Buildozer Compilation
+      run: |
+        buildozer android debug
+      env:
+        BUILDOZER_WARN_ON_ROOT: 0
+
+    - name: Upload Finished APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Aviator-Predictor-Debug-APK
+        path: bin/*.apk
