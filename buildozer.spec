@@ -7,8 +7,8 @@ source.include_exts = py,png,jpg,kv,atlas,json
 
 version = 2.5.7
 
-# Added hostpython3, openssl, sqlite3, and fixed 'requests'
-requirements = python3, hostpython3, kivy, numpy, requests, openssl, sqlite3
+# Added hostpython3, openssl, sqlite3, and vital python network packages
+requirements = python3, hostpython3, kivy, numpy, requests, openssl, sqlite3, chardet, idna, urllib3, certifi
 
 orientation = portrait
 fullscreen = 0
@@ -21,7 +21,7 @@ android.api = 34
 android.minapi = 24
 android.ndk = 26b
 
-# Modern Android devices require arm64-v8a. builds will fail or be rejected without this.
+# Modern Android devices require arm64-v8a
 android.archs = arm64-v8a, armeabi-v7a
 
 [buildozer]
