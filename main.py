@@ -6,35 +6,116 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
-from kivy.clock import Clock  # <--- CRITICAL FOR FIXING THE TIMEOUT FREEZE
+from kivy.uix.scrollview import ScrollView
+from kivy.clock import Clock
 import random
 
-class DashboardView(BoxLayout):
+class AviatorDashboard(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation='vertical', padding=15, spacing=10, **kwargs)
         
-        # UI Header Component
+        # 1. Dashboard Header Banner
         self.add_widget(Label(
-            text="AVIATOR AUTOMATED TELEMETRY PANEL", 
-            font_size='20sp', 
-            bold=True,
+            text="[b]AVIATOR LIVE DATA LOG SYSTEM[/b]", 
+            markup=True,
+            font_size='22sp', 
             size_hint_y=None,
-            height='50dp'
+            height='50dp',
+            color=(0.9, 0.9, 0.9, 1)
         ))
         
-        # Information Grid
-        self.stats_grid = GridLayout(cols=2, spacing=10, size_hint_y=None, height='120dp')
-        self.stats_grid.add_widget(Label(text="Latest Crash Point:", font_size='16sp'))
-        self.lbl_crash = Label(text="Awaiting Stream...", font_size='20sp', bold=True)
-        self.stats_grid.add_widget(self.lbl_crash)
+        # 2. Main Metrics Information Grid
+        self.metrics_grid = GridLayout(cols=2, spacing=10, size_hint_y=None, height='120dp')
         
-        self.stats_grid.add_widget(Label(text="Engine Clock Loop:", font_size='16sp'))
-        self.lbl_status = Label(text="STOPPED", font_size='18sp', bold=True, color=(1, 0.3, 0.3, 1))
-        self.stats_grid.add_widget(self.lbl_status)
-        self.add_widget(self.stats_grid)
+        self.metrics_grid.add_widget(Label(text="Current Crash Point:", font_size='16sp'))
+        self.lbl_multiplier = Label(text="1.00x", font_size='24sp', bold=True, color=(1, 0.3, 0.3, 1))
+        self.metrics_grid.add_widget(self.lbl_multiplier)
         
-        # Telemetry Logger Window
-        self.console_log = Label(
+        self.metrics_grid.add_widget(Label(text="Monitoring Engine Status:", font_size='16sp'))
+        self.lbl_engine_status = Label(text="OFFLINE", font_size='18sp', bold=True, color=(0.7, 0.7, 0.7, 1))
+        self.metrics_grid.add_widget(self.lbl_engine_status)
+        
+        self.add_widget(self.metrics_grid)
+        
+        # 3. Scrollable Historical Console Logs
+        self.scroll_container = ScrollView(size_hint=(1, 1))
+        self.log_output = Label(
+            text="[System Status]: Awaiting pipeline seed initialization...\nClick below to hook telemetry engine.", 
+            halign='left', 
+            valign='top',
+            size_hint_y=None
+        )
+        self.log_output.bind(size=self._update_text_bounds)
+        self.scroll_container.add_widget(self.log_output)
+        self.add_widget(self.scroll_container)
+        
+        # 4. Input Configuration field
+        self.txt_input = TextInput(
+            hint_text="Enter target server API endpoint or configuration seed", 
+            multiline=False, 
+            size_hint_y=None, 
+            height='45dp'
+        )
+        self.add_widget(self.txt_input)
+        
+        # 5. Core Operational Action Button
+        self.btn_control = Button(
+            text="ACTIVATE AUTOMATED TELEMETRY", 
+            size_hint_y=None, 
+            height='55dp',
+            background_color=(0.1, 0.6, 0.3, 1),
+            bold=True,
+            font_size='16sp'
+        )
+        self.btn_control.bind(on_press=self.toggle_telemetry_loop)
+        self.add_widget(self.btn_control)
+        
+        # Internal container for non-blocking clock routine hooks
+        self.clock_event = None
+
+    def _update_text_bounds(self, instance, size):
+        self.log_output.text_size = (size[0], None)
+        self.log_output.height = max(self.log_output.texture_size[1], 150)
+
+    def toggle_telemetry_loop(self, instance):
+        if not self.clock_event:
+            # Safely schedule automated tasks inside fragments every 2.5 seconds
+            self.clock_event = Clock.schedule_interval(self.fetch_realtime_metrics, 2.5)
+            self.lbl_engine_status.text = "CONNECTED & RUNNING"
+            self.lbl_engine_status.color = (0.2, 0.8, 0.2, 1)
+            self.btn_control.text = "TERMINATE TELEMETRY STREAM"
+            self.btn_control.background_color = (0.9, 0.2, 0.2, 1)
+        else:
+            # Disconnect the clock routine safely to clear processing workload
+            Clock.unschedule(self.clock_event)
+            self.clock_event = None
+            self.lbl_engine_status.text = "OFFLINE"
+            self.lbl_engine_status.color = (0.7, 0.7, 0.7, 1)
+            self.btn_control.text = "ACTIVATE AUTOMATED TELEMETRY"
+            self.btn_control.background_color = (0.1, 0.6, 0.3, 1)
+
+    def fetch_realtime_metrics(self, dt):
+        # Simulate data streaming calculations standard for an aviator tracking platform
+        simulated_value = round(random.uniform(1.0, 6.0), 2)
+        self.lbl_multiplier.text = f"{simulated_value}x"
+        
+        if simulated_value >= 2.0:
+            self.lbl_multiplier.color = (0.2, 0.8, 0.2, 1) # Green for high multipliers
+        else:
+            self.lbl_multiplier.color = (1, 0.3, 0.3, 1) # Red for quick crashes
+            
+        endpoint_param = self.txt_input.text.strip()
+        meta_string = f" [Context Target: {endpoint_param}]" if endpoint_param else ""
+        
+        new_log = f"\n[Telemetry Stream Update]: Intercepted Round Result -> {simulated_value}x{meta_string}"
+        self.log_output.text += new_log
+
+class CopilotAviatorDashboardApp(App):
+    def build(self):
+        return AviatorDashboard()
+
+if __name__ == "__main__":
+    CopilotAviatorDashboardApp().run()
             text="System Engine Idle.\nPress start to initiate the asynchronous background clock loop.", 
             halign='left', 
             valign='top'
