@@ -1,40 +1,83 @@
-"""
-Aviator Predictor v2.5.7
-Real-time Aviator data analysis dashboard with odds visualization
-"""
+import sys
+import traceback
 
-from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.label import Label
-from kivy.uix.button import Button
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.popup import Popup
-from kivy.uix.progressbar import ProgressBar
-from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
-from kivy.clock import Clock
-from kivy.core.window import Window
-import matplotlib.pyplot as plt
-import numpy as np
-from predictor import AviatorPredictor
-from data_analyzer import DataAnalyzer
-import threading
-
-# Set window size for better visibility
-Window.size = (540, 960)
-
-
-class AviatorDashboard(App):
-    """Main Aviator Predictor Application"""
+# 1. We wrap your application setup inside a safety trap to catch launch errors
+try:
+    from kivy.app import App
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.uix.label import Label
+    from kivy.utils import platform
     
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.predictor = AviatorPredictor()
-        self.analyzer = DataAnalyzer()
-        self.prediction_running = False
+    # =============================================================
+    # PLACE YOUR ACTUAL CODE AND LOGIC INSIDE THIS APP CLASS
+    # =============================================================
+    class AviatorPredictorApp(App):
+        def build(self):
+            # Dynamic Android permissions check required for network calls
+            if platform == 'android':
+                from android.permissions import request_permissions, Permission
+                request_permissions([Permission.INTERNET, Permission.ACCESS_NETWORK_STATE])
+            
+            # (Replace this layout block with your actual application layout)
+            layout = BoxLayout(orientation='vertical')
+            layout.add_widget(Label(text="Aviator Predictor Main Screen"))
+            return layout
+
+    def run_main_app():
+        AviatorPredictorApp().run()
+
+except Exception as import_error:
+    # If any module imports fail or clash at startup, capture the traceback text
+    initialization_error = traceback.format_exc()
+    run_main_app = None
+
+
+# =============================================================
+# EMERGENCY MOBILE SCREEN INTERFACE
+# (Prints the exact error on your phone screen instead of dropping to home screen)
+# =============================================================
+if run_main_app is not None:
+    try:
+        if __name__ == '__main__':
+            run_main_app()
+    except Exception as runtime_error:
+        # Catches crashes that happen right after the app finishes loading
+        crash_log = traceback.format_exc()
         
-    def build(self):
-        """Build the main UI"""
+        from kivy.app import App
+        from kivy.uix.scrollview import ScrollView
+        from kivy.uix.label import Label
+        
+        class MobileCrashViewer(App):
+            def build(self):
+                scroll = ScrollView(size_hint=(1, 1))
+                text = Label(
+                    text=f"🔴 APPLICATION CRASH LOG:\n\n{crash_log}",
+                    size_hint_y=None, halign="left", valign="top", font_size="15sp", color=(1, 0.2, 0.2, 1)
+                )
+                text.bind(texture_size=text.setter('size'))
+                scroll.add_widget(text)
+                return scroll
+        if __name__ == '__main__':
+            MobileCrashViewer().run()
+else:
+    # Catches crashes that happen during the initial import phase
+    from kivy.app import App
+    from kivy.uix.scrollview import ScrollView
+    from kivy.uix.label import Label
+    
+    class MobileImportCrashViewer(App):
+        def build(self):
+            scroll = ScrollView(size_hint=(1, 1))
+            text = Label(
+                text=f"❌ CRITICAL INITIALIZATION ERROR:\n\n{initialization_error}",
+                size_hint_y=None, halign="left", valign="top", font_size="15sp", color=(1, 0.3, 0.3, 1)
+            )
+            text.bind(texture_size=text.setter('size'))
+            scroll.add_widget(text)
+            return scroll
+    if __name__ == '__main__':
+        MobileImportCrashViewer().run()
         main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
         
         # Header
