@@ -1,40 +1,93 @@
-__version__ = "1.0.0"  # Buildozer reads this line to generate the APK package name
+__version__ = "1.0.0"
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
+from kivy.uix.textinput import TextInput
+import random
 
-class DashboardLayout(BoxLayout):
+class DashboardView(BoxLayout):
     def __init__(self, **kwargs):
-        super().__init__(orientation='vertical', padding=20, spacing=10, **kwargs)
+        super().__init__(orientation='vertical', padding=15, spacing=10, **kwargs)
         
-        # Add basic screen title
-        self.title_label = Label(
-            text="Aviator Data Dashboard", 
-            font_size='24sp',
+        # 1. App Title
+        self.add_widget(Label(
+            text="AVIATOR REAL-TIME DATA DASHBOARD", 
+            font_size='22sp', 
+            bold=True,
+            size_hint_y=None,
+            height='50dp'
+        ))
+        
+        # 2. Metrics Monitor Grid
+        self.stats_grid = GridLayout(cols=2, spacing=10, size_hint_y=None, height='120dp')
+        
+        self.stats_grid.add_widget(Label(text="Latest Crash Point:", font_size='16sp'))
+        self.lbl_crash = Label(text="1.00x", font_size='20sp', bold=True, color=(1, 0.3, 0.3, 1))
+        self.stats_grid.add_widget(self.lbl_crash)
+        
+        self.stats_grid.add_widget(Label(text="Data Engine Status:", font_size='16sp'))
+        self.lbl_status = Label(text="IDLE", font_size='18sp', bold=True, color=(0.8, 0.8, 0.8, 1))
+        self.stats_grid.add_widget(self.lbl_status)
+        
+        self.add_widget(self.stats_grid)
+        
+        # 3. Text Log Console Output
+        self.console_log = Label(
+            text="[System Console Initialized]\nAwaiting sequence entry...", 
+            halign='left', 
+            valign='top',
+            text_size=(400, None)
+        )
+        self.console_log.bind(size=lambda s, w: setattr(self.console_log, 'text_size', (w[0], None)))
+        self.add_widget(self.console_log)
+        
+        # 4. Action Operations Input & Trigger Buttons
+        self.input_data = TextInput(
+            hint_text="Input data parameters or stream seed", 
+            multiline=False, 
+            size_hint_y=None, 
+            height='45dp'
+        )
+        self.add_widget(self.input_data)
+        
+        self.btn_run = Button(
+            text="START TELEMETRY STREAM", 
+            size_hint_y=None, 
+            height='50dp',
+            background_color=(0.1, 0.7, 0.3, 1),
             bold=True
         )
-        self.add_widget(self.title_label)
+        self.btn_run.bind(on_press=self.update_dashboard_metrics)
+        self.add_widget(self.btn_run)
+
+    def update_dashboard_metrics(self, instance):
+        # Emulate predictive/historical multipliers typical of an aviator utility
+        multiplier = round(random.uniform(1.0, 5.0), 2)
+        self.lbl_crash.text = f"{multiplier}x"
         
-        # Interactive status button
-        self.action_btn = Button(
-            text="Initialize Data Engine", 
-            size_hint=(1, 0.25),
-            background_color=(0.2, 0.6, 1, 1)
-        )
-        self.action_btn.bind(on_press=self.on_btn_click)
-        self.add_widget(self.action_btn)
+        # Alter metric display attributes based on target values
+        if multiplier >= 2.0:
+            self.lbl_crash.color = (0.2, 0.8, 0.2, 1) # Green for high multipliers
+        else:
+            self.lbl_crash.color = (1, 0.3, 0.3, 1) # Red for instant crashes
+            
+        self.lbl_status.text = "RUNNING"
+        self.lbl_status.color = (0.2, 0.6, 1, 1)
+        
+        user_input = self.input_data.text.strip()
+        seed_info = f" | Seed: {user_input}" if user_input else ""
+        self.console_log.text = f"Telemetry Received: Captured event value {multiplier}x{seed_info}\nData cycle resolved successfully."
+        self.input_data.text = ""
 
-    def on_btn_click(self, instance):
-        self.title_label.text = "Dashboard Connected & Live!"
-
-class AviatorApp(App):
+class AviatorDataDashboardApp(App):
     def build(self):
-        return DashboardLayout()
+        return DashboardView()
 
 if __name__ == "__main__":
-    AviatorApp().run()
+    AviatorDataDashboardApp().run()
         super().__init__(cols=2, spacing=10, size_hint_y=None, height='140dp', **kwargs)
         
         # Metric 1: Multiplier Target
