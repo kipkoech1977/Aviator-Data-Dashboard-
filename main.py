@@ -1,40 +1,40 @@
-__version__ = "1.0.0"
+__version__ = "1.0.0"  # Buildozer reads this line to generate the APK package name
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.textinput import TextInput
-import random
 
-class DashboardHeader(BoxLayout):
+class DashboardLayout(BoxLayout):
     def __init__(self, **kwargs):
-        super().__init__(orientation='horizontal', size_hint_y=None, height='60dp', padding=10, **kwargs)
+        super().__init__(orientation='vertical', padding=20, spacing=10, **kwargs)
         
-        # Dashboard Title
-        self.add_widget(Label(
-            text="[b]AVIATOR DATA DASHBOARD[/b]", 
-            markup=True, 
-            font_size='20sp', 
-            halign='left', 
-            size_hint_x=0.7
-        ))
-        
-        # Live System Status Indicator
-        self.status_label = Label(
-            text="● SYSTEM LIVE", 
-            color=(0.1, 0.8, 0.1, 1), 
-            font_size='14sp', 
-            bold=True, 
-            size_hint_x=0.3,
-            halign='right'
+        # Add basic screen title
+        self.title_label = Label(
+            text="Aviator Data Dashboard", 
+            font_size='24sp',
+            bold=True
         )
-        self.add_widget(self.status_label)
+        self.add_widget(self.title_label)
+        
+        # Interactive status button
+        self.action_btn = Button(
+            text="Initialize Data Engine", 
+            size_hint=(1, 0.25),
+            background_color=(0.2, 0.6, 1, 1)
+        )
+        self.action_btn.bind(on_press=self.on_btn_click)
+        self.add_widget(self.action_btn)
 
-class MetricsPanel(GridLayout):
-    def __init__(self, **kwargs):
+    def on_btn_click(self, instance):
+        self.title_label.text = "Dashboard Connected & Live!"
+
+class AviatorApp(App):
+    def build(self):
+        return DashboardLayout()
+
+if __name__ == "__main__":
+    AviatorApp().run()
         super().__init__(cols=2, spacing=10, size_hint_y=None, height='140dp', **kwargs)
         
         # Metric 1: Multiplier Target
