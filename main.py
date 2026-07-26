@@ -6,35 +6,91 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
+from kivy.clock import Clock  # <--- CRITICAL FOR FIXING THE TIMEOUT FREEZE
 import random
 
 class DashboardView(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation='vertical', padding=15, spacing=10, **kwargs)
         
-        # 1. App Title
+        # UI Header Component
         self.add_widget(Label(
-            text="AVIATOR REAL-TIME DATA DASHBOARD", 
-            font_size='22sp', 
+            text="AVIATOR AUTOMATED TELEMETRY PANEL", 
+            font_size='20sp', 
             bold=True,
             size_hint_y=None,
             height='50dp'
         ))
         
-        # 2. Metrics Monitor Grid
+        # Information Grid
         self.stats_grid = GridLayout(cols=2, spacing=10, size_hint_y=None, height='120dp')
-        
         self.stats_grid.add_widget(Label(text="Latest Crash Point:", font_size='16sp'))
-        self.lbl_crash = Label(text="1.00x", font_size='20sp', bold=True, color=(1, 0.3, 0.3, 1))
+        self.lbl_crash = Label(text="Awaiting Stream...", font_size='20sp', bold=True)
         self.stats_grid.add_widget(self.lbl_crash)
         
-        self.stats_grid.add_widget(Label(text="Data Engine Status:", font_size='16sp'))
-        self.lbl_status = Label(text="IDLE", font_size='18sp', bold=True, color=(0.8, 0.8, 0.8, 1))
+        self.stats_grid.add_widget(Label(text="Engine Clock Loop:", font_size='16sp'))
+        self.lbl_status = Label(text="STOPPED", font_size='18sp', bold=True, color=(1, 0.3, 0.3, 1))
         self.stats_grid.add_widget(self.lbl_status)
-        
         self.add_widget(self.stats_grid)
         
-        # 3. Text Log Console Output
+        # Telemetry Logger Window
+        self.console_log = Label(
+            text="System Engine Idle.\nPress start to initiate the asynchronous background clock loop.", 
+            halign='left', 
+            valign='top'
+        )
+        self.console_log.bind(size=lambda s, w: setattr(self.console_log, 'text_size', (w, None)))
+        self.add_widget(self.console_log)
+        
+        # Control Action Elements
+        self.btn_run = Button(
+            text="START REAL-TIME STREAM ENGINE", 
+            size_hint_y=None, 
+            height='50dp',
+            background_color=(0.1, 0.7, 0.3, 1),
+            bold=True
+        )
+        self.btn_run.bind(on_press=self.toggle_engine_stream)
+        self.add_widget(self.btn_run)
+        
+        # Reference pointer variable for tracking safe clock loops
+        self.engine_event = None
+
+    def toggle_engine_stream(self, instance):
+        if not self.engine_event:
+            # Safe Clock Schedule: Run background cycles every 2 seconds without freezing UI thread
+            self.engine_event = Clock.schedule_interval(self.execute_background_data_fetch, 2.0)
+            self.lbl_status.text = "RUNNING ACTIVE"
+            self.lbl_status.color = (0.2, 0.8, 0.2, 1)
+            self.btn_run.text = "PAUSE STREAM ENGINE"
+            self.btn_run.background_color = (1, 0.3, 0.3, 1)
+        else:
+            # Unschedule safely to cease processing load
+            Clock.unschedule(self.engine_event)
+            self.engine_event = None
+            self.lbl_status.text = "STOPPED"
+            self.lbl_status.color = (1, 0.3, 0.3, 1)
+            self.btn_run.text = "START REAL-TIME STREAM ENGINE"
+            self.btn_run.background_color = (0.1, 0.7, 0.3, 1)
+
+    def execute_background_data_fetch(self, dt):
+        # Mimic continuous data stream reads safely
+        multiplier = round(random.uniform(1.0, 4.5), 2)
+        self.lbl_crash.text = f"{multiplier}x"
+        
+        if multiplier >= 2.00:
+            self.lbl_crash.color = (0.2, 0.8, 0.2, 1)
+        else:
+            self.lbl_crash.color = (1, 0.3, 0.3, 1)
+            
+        self.console_log.text = f"Telemetry Loop Pulse ({round(dt, 3)}s framework cycle):\nCaptured telemetry event index -> {multiplier}x successfully."
+
+class AviatorEngineApp(App):
+    def build(self):
+        return DashboardView()
+
+if __name__ == "__main__":
+    AviatorEngineApp().run()
         self.console_log = Label(
             text="[System Console Initialized]\nAwaiting sequence entry...", 
             halign='left', 
