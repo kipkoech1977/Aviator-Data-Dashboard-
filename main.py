@@ -1,40 +1,35 @@
-import sys
-import traceback
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.button import Button
 
-# 1. We wrap your application setup inside a safety trap to catch launch errors
-try:
-    from kivy.app import App
-    from kivy.uix.boxlayout import BoxLayout
-    from kivy.uix.label import Label
-    from kivy.utils import platform
-    
-    # =============================================================
-    # PLACE YOUR ACTUAL CODE AND LOGIC INSIDE THIS APP CLASS
-    # =============================================================
-    class AviatorPredictorApp(App):
-        def build(self):
-            # Dynamic Android permissions check required for network calls
-            if platform == 'android':
-                from android.permissions import request_permissions, Permission
-                request_permissions([Permission.INTERNET, Permission.ACCESS_NETWORK_STATE])
-            
-            # (Replace this layout block with your actual application layout)
-            layout = BoxLayout(orientation='vertical')
-            layout.add_widget(Label(text="Aviator Predictor Main Screen"))
-            return layout
+class MainWidget(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(orientation='vertical', padding=20, spacing=10, **kwargs)
+        
+        self.label = Label(
+            text="Welcome to your Kivy App!", 
+            font_size='24sp'
+        )
+        self.add_widget(self.label)
+        
+        self.btn = Button(
+            text="Test Application", 
+            size_hint=(1, 0.3),
+            background_color=(0.1, 0.7, 0.3, 1)
+        )
+        self.btn.bind(on_press=self.on_button_click)
+        self.add_widget(self.btn)
 
-    def run_main_app():
-        AviatorPredictorApp().run()
+    def on_button_click(self, instance):
+        self.label.text = "Buildozer Pipeline is Ready!"
 
-except Exception as import_error:
-    # If any module imports fail or clash at startup, capture the traceback text
-    initialization_error = traceback.format_exc()
-    run_main_app = None
+class MyApp(App):
+    def build(self):
+        return MainWidget()
 
-
-# =============================================================
-# EMERGENCY MOBILE SCREEN INTERFACE
-# (Prints the exact error on your phone screen instead of dropping to home screen)
+if __name__ == "__main__":
+    MyApp().run()
 # =============================================================
 if run_main_app is not None:
     try:
