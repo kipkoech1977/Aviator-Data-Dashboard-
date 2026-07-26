@@ -1,51 +1,74 @@
-name: Build Aviator Predictor APK
+name: Build Android APK
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Source Code
+    - name: Checkout repository code
       uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
 
     - name: Install System Dependencies
       run: |
-        sudo apt-get clean
         sudo apt-get update
-        sudo apt-get install -y -f
-        sudo apt-get install -y --fix-broken
         sudo apt-get install -y \
-          build-essential git ffmpeg libsdl2-dev libsdl2-image-dev \
-          libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev \
-          libavformat-dev libavcodec-dev zlib1g-dev libsqlite3-dev sqlite3 \
-          bzip2 libbz2-dev libssl-dev openssl libgdbm-dev libgdbm-compat-dev \
-          liblzma-dev libreadline-dev libncursesw5-dev libffi-dev uuid-dev \
-          tar unzip zip openjdk-17-jdk autoconf automake libtool pkg-config ccache clang
+          build-essential \
+          ccache \
+          git \
+          libffi-dev \
+          libssl-dev \
+          autoconf \
+          automake \
+          libtool \
+          pkg-config \
+          zlib1g-dev \
+          unzip \
+          zip \
+          gawk \
+          patch \
+          texinfo \
+          libltdl-dev
 
-    - name: Install Buildozer and Dependencies
+    - name: Cache Buildozer Data
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.buildozer
+          .buildozer
+        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-buildozer-
+
+    - name: Install Buildozer and Cython
       run: |
         pip install --upgrade pip
-        pip install Cython==0.29.33
-        pip install buildozer
+        pip install --upgrade "cython<3.0.0" buildozer
 
-    - name: Run Buildozer Compilation
+    - name: Build Android Debug APK
       run: |
-        buildozer android debug
-      env:
-        BUILDOZER_WARN_ON_ROOT: 0
+        yes | buildozer android debug
 
     - name: Upload Finished APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Aviator-Predictor-Debug-APK
+        name: package-debug-apk
         path: bin/*.apk
