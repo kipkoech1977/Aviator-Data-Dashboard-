@@ -1,40 +1,143 @@
+__version__ = "1.0.0"
+
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.textinput import TextInput
+import random
 
-class MainWidget(BoxLayout):
+class DashboardHeader(BoxLayout):
     def __init__(self, **kwargs):
-        super().__init__(orientation='vertical', padding=20, spacing=10, **kwargs)
+        super().__init__(orientation='horizontal', size_hint_y=None, height='60dp', padding=10, **kwargs)
         
-        self.label = Label(
-            text="Welcome to your Kivy App!", 
-            font_size='24sp'
+        # Dashboard Title
+        self.add_widget(Label(
+            text="[b]AVIATOR DATA DASHBOARD[/b]", 
+            markup=True, 
+            font_size='20sp', 
+            halign='left', 
+            size_hint_x=0.7
+        ))
+        
+        # Live System Status Indicator
+        self.status_label = Label(
+            text="● SYSTEM LIVE", 
+            color=(0.1, 0.8, 0.1, 1), 
+            font_size='14sp', 
+            bold=True, 
+            size_hint_x=0.3,
+            halign='right'
         )
-        self.add_widget(self.label)
+        self.add_widget(self.status_label)
+
+class MetricsPanel(GridLayout):
+    def __init__(self, **kwargs):
+        super().__init__(cols=2, spacing=10, size_hint_y=None, height='140dp', **kwargs)
         
+        # Metric 1: Multiplier Target
+        self.add_widget(Label(text="Avg. Multiplier Target:", halign='left'))
+        self.avg_mult = Label(text="2.45x", bold=True, font_size='18sp', color=(0.2, 0.6, 1, 1))
+        self.add_widget(self.avg_mult)
+        
+        # Metric 2: Success Rate
+        self.add_widget(Label(text="Predictive Accuracy:", halign='left'))
+        self.accuracy = Label(text="76.4%", bold=True, font_size='18sp', color=(0.1, 0.8, 0.1, 1))
+        self.add_widget(self.accuracy)
+
+class DataLogView(ScrollView):
+    def __init__(self, **kwargs):
+        super().__init__(size_hint=(1, 1), **kwargs)
+        
+        # Scrollable container for telemetry data
+        self.layout = GridLayout(cols=3, spacing=5, size_hint_y=None)
+        self.layout.bind(minimum_height=self.layout.setter('height'))
+        self.add_widget(self.layout)
+        
+        # Generate table headers
+        headers = ["Timestamp", "Crash Point", "Risk Vector"]
+        for header in headers:
+            self.layout.add_widget(Label(text=f"[b]{header}[/b]", markup=True, size_hint_y=None, height='40dp'))
+            
+        # Seed initial dummy rows
+        for i in range(1, 11):
+            self.add_log_entry(f"Round #{1000 + i}", f"{round(random.uniform(1.0, 5.0), 2)}x", "LOW" if i % 2 == 0 else "MEDIUM")
+
+    def add_log_entry(self, round_id, crash, risk):
+        self.layout.add_widget(Label(text=round_id, size_hint_y=None, height='35dp'))
+        self.layout.add_widget(Label(text=crash, size_hint_y=None, height='35dp'))
+        
+        risk_color = (0.1, 0.8, 0.1, 1) if risk == "LOW" else (1, 0.6, 0, 1)
+        self.layout.add_widget(Label(text=risk, color=risk_color, size_hint_y=None, height='35dp'))
+
+class ControlPanel(BoxLayout):
+    def __init__(self, log_view, metrics_panel, **kwargs):
+        super().__init__(orientation='vertical', size_hint_y=None, height='150dp', spacing=10, **kwargs)
+        self.log_view = log_view
+        self.metrics_panel = metrics_panel
+        
+        # Input Field for data updates
+        self.input_field = TextInput(
+            text='', 
+            hint_text='Enter manual crash point data (e.g. 1.85)', 
+            multiline=False, 
+            size_hint_y=None, 
+            height='45dp'
+        )
+        self.add_widget(self.input_field)
+        
+        # Interaction Button
         self.btn = Button(
-            text="Test Application", 
-            size_hint=(1, 0.3),
-            background_color=(0.1, 0.7, 0.3, 1)
+            text="PROCESS NEW DATA ENGINE ROUND", 
+            size_hint_y=None, 
+            height='50dp',
+            background_color=(0.2, 0.6, 1, 1),
+            font_size='16sp',
+            bold=True
         )
-        self.btn.bind(on_press=self.on_button_click)
+        self.btn.bind(on_press=self.process_data)
         self.add_widget(self.btn)
 
-    def on_button_click(self, instance):
-        self.label.text = "Buildozer Pipeline is Ready!"
+    def process_data(self, instance):
+        val = self.input_field.text.strip()
+        if not val:
+            val = f"{round(random.uniform(1.0, 10.0), 2)}x"
+        else:
+            val = f"{val}x"
+            
+        # Append interactive data point dynamically
+        rand_round = f"Round #{random.randint(1012, 9999)}"
+        risk_profile = random.choice(["LOW", "MEDIUM", "HIGH"])
+        self.log_view.add_log_entry(rand_round, val, risk_profile)
+        
+        # Update random dashboard telemetry metrics on click
+        self.metrics_panel.avg_mult.text = f"{round(random.uniform(1.5, 3.5), 2)}x"
+        self.metrics_panel.accuracy.text = f"{random.randint(65, 95)}%"
+        self.input_field.text = ''
 
-class MyApp(App):
+class AviatorDashboardApp(App):
     def build(self):
-        return MainWidget()
+        # Master Layout Base
+        root = BoxLayout(orientation='vertical', padding=15, spacing=10)
+        
+        # Component Pipeline Composition
+        header = DashboardHeader()
+        metrics = MetricsPanel()
+        logs = DataLogView()
+        controls = ControlPanel(log_view=logs, metrics_panel=metrics)
+        
+        root.add_widget(header)
+        root.add_widget(metrics)
+        root.add_widget(Label(text="[i]Live Historical Trends Analytics[/i]", markup=True, size_hint_y=None, height='30dp'))
+        root.add_widget(logs)
+        root.add_widget(controls)
+        
+        return root
 
 if __name__ == "__main__":
-    MyApp().run()
-# =============================================================
-if run_main_app is not None:
-    try:
-        if __name__ == '__main__':
-            run_main_app()
+    AviatorDashboardApp().run()
     except Exception as runtime_error:
         # Catches crashes that happen right after the app finishes loading
         crash_log = traceback.format_exc()
