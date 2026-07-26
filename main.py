@@ -1,68 +1,73 @@
-__version__ = "2.5.7"  # Must match the version = 2.5.7 in your buildozer.spec exactly
+__version__ = "2.5.7"  # This MUST match line 8 of your buildozer.spec precisely
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
-from kivy.uix.scrollview import ScrollView
 from kivy.clock import Clock
-import threading
+import sqlite3
 import random
 
-# Force internal tracking libraries required by your spec definitions
-import numpy as np
-import requests
-
-class AviatorPredictorDashboard(BoxLayout):
+class PredictorDashboard(BoxLayout):
     def __init__(self, **kwargs):
-        super().__init__(orientation='vertical', padding=15, spacing=10, **kwargs)
+        super().__init__(orientation='vertical', padding=20, spacing=15, **kwargs)
         
-        # 1. Main Application Header
+        # Main Interface Title
         self.add_widget(Label(
             text="[b]AVIATOR PREDICTOR DASHBOARD[/b]", 
             markup=True,
-            font_size='22sp', 
+            font_size='22sp',
             size_hint_y=None,
             height='50dp'
         ))
         
-        # 2. Live Predictive Analytical Data Panels (Powered by NumPy data arrays)
-        self.metrics_grid = GridLayout(cols=2, spacing=10, size_hint_y=None, height='120dp')
-        
-        self.metrics_grid.add_widget(Label(text="Predicted Next Crash:", font_size='16sp'))
-        self.lbl_prediction = Label(text="1.00x", font_size='24sp', bold=True, color=(1, 0.3, 0.3, 1))
-        self.metrics_grid.add_widget(self.lbl_prediction)
-        
-        self.metrics_grid.add_widget(Label(text="Numpy Analytics (Mean):", font_size='16sp'))
-        self.lbl_mean = Label(text="0.00x", font_size='18sp', bold=True)
-        self.metrics_grid.add_widget(self.lbl_mean)
-        
-        self.add_widget(self.metrics_grid)
-        
-        # 3. Text Log Console Output Terminal View
-        self.scroll_view = ScrollView(size_hint=(1, 1))
-        self.console_log = Label(
-            text="[System Ready]\nClick below to connect real-time analytics stream Engine...", 
-            halign='left', 
-            valign='top',
-            size_hint_y=None
+        # Telemetry Display Output
+        self.lbl_display = Label(
+            text="System Initialized.\nPress button to sync data engine stream.", 
+            font_size='16sp',
+            halign='center'
         )
-        self.console_log.bind(size=self._update_text_height)
-        self.scroll_view.add_widget(self.console_log)
-        self.add_widget(self.scroll_view)
+        self.add_widget(self.lbl_display)
         
-        # 4. Action Execution Button Component
+        # Core Functional Action Button
         self.btn_action = Button(
-            text="START PREDICTION ENGINE", 
+            text="INITIALIZE DATA STREAM", 
             size_hint_y=None, 
             height='55dp',
-            background_color=(0.1, 0.7, 0.3, 1),
+            background_color=(0.1, 0.6, 0.3, 1),
             bold=True,
             font_size='16sp'
         )
-        self.btn_action.bind(on_press=self.toggle_prediction_stream)
+        self.btn_action.bind(on_press=self.toggle_data_stream)
         self.add_widget(self.btn_action)
+        
+        # Internal non-blocking loop tracker variable
+        self.loop_event = None
+
+    def toggle_data_stream(self, instance):
+        if not self.loop_event:
+            # Safely trigger background loop processing every 2.5 seconds without hanging UI threads
+            self.loop_event = Clock.schedule_interval(self.process_dashboard_pulse, 2.5)
+            self.btn_action.text = "STOP DATA STREAM"
+            self.btn_action.background_color = (0.9, 0.2, 0.2, 1)
+        else:
+            Clock.unschedule(self.loop_event)
+            self.loop_event = None
+            self.btn_action.text = "INITIALIZE DATA STREAM"
+            self.btn_action.background_color = (0.1, 0.6, 0.3, 1)
+
+    def process_dashboard_pulse(self, dt):
+        # Simulate standard numeric processing data points
+        simulated_multiplier = round(random.uniform(1.0, 5.0), 2)
+        self.lbl_display.text = f"Live Data Loop Active\n[b]Current Reading: {simulated_multiplier}x[/b]"
+        self.lbl_display.markup = True
+
+class AviatorPredictorApp(App):
+    def build(self):
+        return PredictorDashboard()
+
+if __name__ == "__main__":
+    AviatorPredictorApp().run()
         
         # Internal application storage buffers
         self.clock_event = None
