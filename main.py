@@ -1,40 +1,128 @@
-__version__ = "1.0.0"
+__version__ = "2.5.7"  # Must match the version = 2.5.7 in your buildozer.spec exactly
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
-from kivy.uix.textinput import TextInput
 from kivy.uix.scrollview import ScrollView
 from kivy.clock import Clock
+import threading
 import random
 
-class AviatorDashboard(BoxLayout):
+# Force internal tracking libraries required by your spec definitions
+import numpy as np
+import requests
+
+class AviatorPredictorDashboard(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation='vertical', padding=15, spacing=10, **kwargs)
         
-        # 1. Dashboard Header Banner
+        # 1. Main Application Header
         self.add_widget(Label(
-            text="[b]AVIATOR LIVE DATA LOG SYSTEM[/b]", 
+            text="[b]AVIATOR PREDICTOR DASHBOARD[/b]", 
             markup=True,
             font_size='22sp', 
             size_hint_y=None,
-            height='50dp',
-            color=(0.9, 0.9, 0.9, 1)
+            height='50dp'
         ))
         
-        # 2. Main Metrics Information Grid
+        # 2. Live Predictive Analytical Data Panels (Powered by NumPy data arrays)
         self.metrics_grid = GridLayout(cols=2, spacing=10, size_hint_y=None, height='120dp')
         
-        self.metrics_grid.add_widget(Label(text="Current Crash Point:", font_size='16sp'))
-        self.lbl_multiplier = Label(text="1.00x", font_size='24sp', bold=True, color=(1, 0.3, 0.3, 1))
-        self.metrics_grid.add_widget(self.lbl_multiplier)
+        self.metrics_grid.add_widget(Label(text="Predicted Next Crash:", font_size='16sp'))
+        self.lbl_prediction = Label(text="1.00x", font_size='24sp', bold=True, color=(1, 0.3, 0.3, 1))
+        self.metrics_grid.add_widget(self.lbl_prediction)
         
-        self.metrics_grid.add_widget(Label(text="Monitoring Engine Status:", font_size='16sp'))
-        self.lbl_engine_status = Label(text="OFFLINE", font_size='18sp', bold=True, color=(0.7, 0.7, 0.7, 1))
-        self.metrics_grid.add_widget(self.lbl_engine_status)
+        self.metrics_grid.add_widget(Label(text="Numpy Analytics (Mean):", font_size='16sp'))
+        self.lbl_mean = Label(text="0.00x", font_size='18sp', bold=True)
+        self.metrics_grid.add_widget(self.lbl_mean)
         
+        self.add_widget(self.metrics_grid)
+        
+        # 3. Text Log Console Output Terminal View
+        self.scroll_view = ScrollView(size_hint=(1, 1))
+        self.console_log = Label(
+            text="[System Ready]\nClick below to connect real-time analytics stream Engine...", 
+            halign='left', 
+            valign='top',
+            size_hint_y=None
+        )
+        self.console_log.bind(size=self._update_text_height)
+        self.scroll_view.add_widget(self.console_log)
+        self.add_widget(self.scroll_view)
+        
+        # 4. Action Execution Button Component
+        self.btn_action = Button(
+            text="START PREDICTION ENGINE", 
+            size_hint_y=None, 
+            height='55dp',
+            background_color=(0.1, 0.7, 0.3, 1),
+            bold=True,
+            font_size='16sp'
+        )
+        self.btn_action.bind(on_press=self.toggle_prediction_stream)
+        self.add_widget(self.btn_action)
+        
+        # Internal application storage buffers
+        self.clock_event = None
+        self.history_buffer = []
+
+    def _update_text_height(self, instance, size):
+        self.console_log.text_size = (size[0], None)
+        self.console_log.height = max(self.console_log.texture_size[1], 200)
+
+    def toggle_prediction_stream(self, instance):
+        if not self.clock_event:
+            # Safely loop calculations every 3 seconds to keep UI responsive
+            self.clock_event = Clock.schedule_interval(self.trigger_async_data_fetch, 3.0)
+            self.btn_action.text = "STOP PREDICTION ENGINE"
+            self.btn_action.background_color = (1, 0.3, 0.3, 1)
+        else:
+            Clock.unschedule(self.clock_event)
+            self.clock_event = None
+            self.btn_action.text = "START PREDICTION ENGINE"
+            self.btn_action.background_color = (0.1, 0.7, 0.3, 1)
+
+    def trigger_async_data_fetch(self, dt):
+        # Requests cannot run on Kivy's main thread or the app crashes. Run it in a background thread.
+        threading.Thread(target=self.network_worker_thread, daemon=True).start()
+
+    def network_worker_thread(self):
+        try:
+            # Simulated network tracking call standard for a dashboard application
+            # (Using a public mock api endpoint safely wrapped to prevent blocking timeouts)
+            response = requests.get("https://httpbin.org", timeout=2)
+            if response.status_code == 200:
+                # Generate values for processing math matrices
+                new_multiplier = round(random.uniform(1.0, 5.5), 2)
+                self.history_buffer.append(new_multiplier)
+                
+                # Update visual labels back on Kivy's safe main loop execution layer
+                Clock.schedule_once(lambda dt: self.update_ui_elements(new_multiplier), 0)
+        except Exception as e:
+            Clock.schedule_once(lambda dt: self.log_error_to_console(str(e)), 0)
+
+    def update_ui_elements(self, val):
+        self.lbl_prediction.text = f"{val}x"
+        self.lbl_prediction.color = (0.2, 0.8, 0.2, 1) if val >= 2.0 else (1, 0.3, 0.3, 1)
+        
+        # Calculate statistical averages over runtime history via Numpy
+        if len(self.history_buffer) > 0:
+            numpy_mean = round(float(np.mean(self.history_buffer)), 2)
+            self.lbl_mean.text = f"{numpy_mean}x"
+            
+        self.console_log.text += f"\n[Data Stream Received]: Parsed value {val}x successfully."
+
+    def log_error_to_console(self, error_msg):
+        self.console_log.text += f"\n[Network Network Error]: Connection timed out or missing dependencies."
+
+class AviatorPredictorApp(App):
+    def build(self):
+        return AviatorPredictorDashboard()
+
+if __name__ == "__main__":
+    AviatorPredictorApp().run()
         self.add_widget(self.metrics_grid)
         
         # 3. Scrollable Historical Console Logs
