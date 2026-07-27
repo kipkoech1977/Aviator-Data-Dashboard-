@@ -6,142 +6,125 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.button import Button
-from kivy.uix.progressbar import ProgressBar
+from kivy.network.urlrequest import UrlRequest  # <-- CRITICAL FOR SAFE ANDROID NETWORKING
 from kivy.clock import Clock
-import random
+import json
 
-# Embedded structural logic blocks replacing separate file tracking needs
-class AviatorPredictor:
-    def generate_raw_prediction(self):
-        return round(random.uniform(1.0, 4.5), 2)
-
-class DataAnalyzer:
-    def __init__(self):
-        self.log_history = [1.2, 1.8, 2.5, 1.1, 3.4]
-
-    def compute_moving_metrics(self, latest_coordinate):
-        self.log_history.append(latest_coordinate)
-        if len(self.log_history) > 10:
-            self.log_history.pop(0)
-        return self.log_history
-
-# Safe Native Graphics Graph Panel (Completely removes matplotlib/numpy risks)
-class KivyLiveChart(BoxLayout):
+class AviatorDashboard(BoxLayout):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.bind(size=self.draw_graph, pos=self.draw_graph)
-        self.data_points = [1.2, 1.8, 2.5, 1.1, 3.4]
-
-    def update_data(self, new_points):
-        self.data_points = new_points
-        self.draw_graph()
-
-    def draw_graph(self, *args):
-        from kivy.graphics import Color, Line, Rectangle
-        self.canvas.clear()
-        with self.canvas:
-            Color(0.08, 0.08, 0.08, 1)
-            Rectangle(pos=self.pos, size=self.size)
-
-            Color(0.2, 0.2, 0.2, 1)
-            Line(rectangle=(self.x + 15, self.y + 15, self.width - 30, self.height - 30), width=1)
-
-            if len(self.data_points) < 2:
-                return
-
-            padding = 35
-            graph_w = self.width - (padding * 2)
-            graph_h = self.height - (padding * 2)
-            
-            max_val = max(max(self.data_points), 5.0)
-            min_val = 1.0
-            val_range = max_val - min_val if max_val != min_val else 1.0
-
-            points_pixels = []
-            x_step = graph_w / (len(self.data_points) - 1)
-
-            for i, val in enumerate(self.data_points):
-                pt_x = self.x + padding + (i * x_step)
-                pt_y = self.y + padding + (((val - min_val) / val_range) * graph_h)
-                points_pixels.extend([pt_x, pt_y])
-
-            Color(1, 0.73, 0, 1)  # Vibrant Gold Line Tracking
-            Line(points=points_pixels, width=2.5, joint='round')
-
-class AviatorPredictorDashboard(BoxLayout):
-    def __init__(self, **kwargs):
-        super().__init__(orientation='vertical', padding=15, spacing=10, **kwargs)
+        super().__init__(orientation='vertical', padding=10, spacing=10, **kwargs)
         
-        self.predictor_engine = AviatorPredictor()
-        self.analyzer_engine = DataAnalyzer()
+        main_layout = self  
         
-        # 1. Header Display Section
-        self.add_widget(Label(
-            text="[b]Aviator Predictor v2.5.7[/b]", 
-            markup=True, font_size='24sp', size_hint_y=0.1
-        ))
+        # 1. Header Component Display Frame
+        header = Label(
+            text='[b]Aviator Betika Live Stream v2.5.7[/b]',
+            size_hint_y=0.1,
+            markup=True,
+            font_size='22sp'
+        )
+        main_layout.add_widget(header)
         
-        # 2. Status Output Box
+        # 2. Live Network Engine Connection Status
         self.status_label = Label(
-            text='Status: Ready',
+            text='Status: Disconnected (Local Simulation)',
             size_hint_y=0.08,
-            color=(0, 1, 0, 1)
+            color=(1, 0.3, 0.3, 1)
         )
-        self.add_widget(self.status_label)
+        main_layout.add_widget(self.status_label)
         
-        # 3. Scroll View Window Layout Container
+        # 3. Main Data Analytics Grid Monitor
+        self.metrics_grid = GridLayout(cols=2, spacing=10, size_hint_y=None, height='80dp')
+        self.metrics_grid.add_widget(Label(text="Live Intercepted Odds:", font_size='14sp'))
+        self.lbl_target = Label(text="1.00x", font_size='24sp', bold=True, color=(1, 1, 1, 1))
+        self.metrics_grid.add_widget(self.lbl_target)
+        main_layout.add_widget(self.metrics_grid)
+        
+        # 4. Scroll View Console Window Frame for Log Telemetry
         scroll = ScrollView(size_hint=(1, 0.6))
-        content_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
-        content_layout.bind(minimum_height=content_layout.setter('height'))
+        self.content_layout = GridLayout(cols=1, spacing=5, size_hint_y=None)
+        self.content_layout.bind(minimum_height=self.content_layout.setter('height'))
         
-        # 4. Target Metrics Tracking Display
-        self.prediction_label = Label(
-            text='Prediction: [b]Awaiting data...[/b]',
-            markup=True, font_size='20sp', size_hint_y=None, height='50dp'
+        self.log_label = Label(
+            text='[System Initialized]\nWaiting to attach live betika_scraper_py client stream...',
+            markup=True,
+            font_size='14sp',
+            halign='left',
+            valign='top',
+            size_hint_y=None
         )
-        content_layout.add_widget(self.prediction_label)
-        scroll.add_widget(content_layout)
-        self.add_widget(scroll)
+        self.log_label.bind(size=self._update_text_bounds)
+        self.content_layout.add_widget(self.log_label)
+        scroll.add_widget(self.content_layout)
+        main_layout.add_widget(scroll)
         
-        # 5. Native Visual Chart Component
-        self.chart_widget = KivyLiveChart(size_hint=(1, 0.4))
-        self.add_widget(self.chart_widget)
-        
-        # 6. Operational Automation Trigger Button
-        self.btn_control = Button(
-            text="START TELEMETRY LOOP", size_hint_y=0.12,
-            background_color=(0.1, 0.6, 0.3, 1), bold=True
+        # 5. Core Pipeline Operational Control Action Button
+        self.btn_run = Button(
+            text="CONNECT LIVE SCRAPER STREAM",
+            size_hint_y=0.12,
+            background_color=(0.1, 0.6, 0.3, 1),
+            bold=True
         )
-        self.btn_control.bind(on_press=self.toggle_prediction_pipeline)
-        self.add_widget(self.btn_control)
+        self.btn_run.bind(on_press=self.toggle_scraper_connection)
+        main_layout.add_widget(self.btn_run)
         
-        self.pipeline_loop = None
+        # Internal configuration storage parameters
+        self.scraper_loop = None
+        self.api_target_endpoint = "https://httpbin.org" # Replace with your hosting server/local node URL
 
-    def toggle_prediction_pipeline(self, instance):
-        if not self.pipeline_loop:
-            self.pipeline_loop = Clock.schedule_interval(self.dispatch_dashboard_update, 2.0)
-            self.status_label.text = "Status: RUNNING"
+    def _update_text_bounds(self, instance, size):
+        self.log_label.text_size = (size, None)
+        self.log_label.height = max(self.log_label.texture_size, 300)
+
+    def toggle_scraper_connection(self, instance):
+        if not self.scraper_loop:
+            # Safely query your betika_scraper_py pipeline node every 3.0 seconds
+            self.scraper_loop = Clock.schedule_interval(self.fetch_live_scraper_telemetry, 3.0)
+            self.status_label.text = "Status: STREAMING LIVE"
             self.status_label.color = (0.2, 0.8, 0.2, 1)
-            self.btn_control.text = "STOP TELEMETRY LOOP"
-            self.btn_control.background_color = (0.9, 0.2, 0.2, 1)
+            self.btn_run.text = "DISCONNECT SCRAPER ENGINE"
+            self.btn_run.background_color = (0.9, 0.2, 0.2, 1)
         else:
-            Clock.unschedule(self.pipeline_loop)
-            self.pipeline_loop = None
-            self.status_label.text = "Status: Ready"
-            self.status_label.color = (0, 1, 0, 1)
-            self.btn_control.text = "START TELEMETRY LOOP"
-            self.btn_control.background_color = (0.1, 0.6, 0.3, 1)
+            Clock.unschedule(self.scraper_loop)
+            self.scraper_loop = None
+            self.status_label.text = "Status: Disconnected"
+            self.status_label.color = (1, 0.3, 0.3, 1)
+            self.btn_run.text = "CONNECT LIVE SCRAPER STREAM"
+            self.btn_run.background_color = (0.1, 0.6, 0.3, 1)
 
-    def dispatch_dashboard_update(self, dt):
-        new_val = self.predictor_engine.generate_raw_prediction()
-        historical_matrix = self.analyzer_engine.compute_moving_metrics(new_val)
-        
-        self.prediction_label.text = f"Prediction: [b]{new_val}x[/b]"
-        self.chart_widget.update_data(list(historical_matrix))
+    def fetch_live_scraper_telemetry(self, dt):
+        # Asynchronously fetch real-time text arrays without causing mobile UI freeze loops
+        UrlRequest(
+            url=self.api_target_endpoint,
+            on_success=self.on_scraper_data_received,
+            on_failure=self.on_network_request_error,
+            on_error=self.on_network_request_error,
+            timeout=2.5
+        )
+
+    def on_scraper_data_received(self, req, result):
+        # Maps raw server response dictionaries cleanly back to your layout items
+        try:
+            # Replace these mock parsing indexes with the specific JSON keys returned by your scraper server
+            # Example: current_odds = float(result.get('latest_multiplier', 1.00))
+            import random
+            current_odds = round(random.uniform(1.00, 6.50), 2)
+            
+            # Refresh metric monitors layout elements
+            self.lbl_target.text = f"{current_odds}x"
+            self.lbl_target.color = (0.2, 0.8, 0.2, 1) if current_odds >= 2.00 else (1, 0.3, 0.3, 1)
+            
+            new_entry = f"\n[Live Fetch]: Intercepted active target round odds index -> [b]{current_odds}x[/b]"
+            self.log_label.text += new_entry
+        except Exception as e:
+            self.log_label.text += f"\n[Parsing Exception]: {str(e)}"
+
+    def on_network_request_error(self, req, error):
+        self.log_label.text += "\n[Connection Timeout]: Awaiting connection validation from data node scraper server..."
 
 class AviatorPredictorApp(App):
     def build(self):
-        return AviatorPredictorDashboard()
+        return AviatorDashboard()
 
 if __name__ == "__main__":
     AviatorPredictorApp().run()
