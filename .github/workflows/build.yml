@@ -3,7 +3,7 @@ name: Build Android APK
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # Allows you to manually trigger the build from the UI
+  workflow_dispatch: # Allows you to manually trigger the build from the GitHub UI
 
 jobs:
   build:
@@ -32,8 +32,7 @@ jobs:
         id: buildozer
         with:
           command: buildozer android debug
-          # Wipes out stale pipeline fragments automatically
-          repository_cache: true
+          repository_cache: true # Wipes out stale pipeline fragments automatically
 
       - name: Upload Finished APK Artifact
         uses: actions/upload-artifact@v4
