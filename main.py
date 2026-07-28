@@ -1,103 +1,194 @@
-__version__ = "2.5.7"  # Must match line 8 of your buildozer.spec precisely
-
+import random
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.uix.scrollview import ScrollView
 from kivy.uix.button import Button
-from kivy.network.urlrequest import UrlRequest  # <-- CRITICAL FOR SAFE ANDROID NETWORKING
+from kivy.uix.widget import Widget
+from kivy.graphics import Color, Line
 from kivy.clock import Clock
-import json
 
-class AviatorDashboard(BoxLayout):
+class TelemetryGraph(Widget):
+    """
+    A custom drawing widget that plots the climbing telemetry curve
+    onto the screen frame-by-frame.
+    """
     def __init__(self, **kwargs):
-        super().__init__(orientation='vertical', padding=10, spacing=10, **kwargs)
+        super().__init__(**kwargs)
+        self.points = []
+
+    def add_point(self, current_multiplier):
+        # Scale the data points cleanly to fit beautifully within the app window canvas
+        max_points = 100
+        self.points.append(current_multiplier)
+        if len(self.points) > max_points:
+            self.points.pop(0)
+        self.redraw()
+
+    def clear_graph(self):
+        self.points = []
+        self.canvas.clear()
+
+    def redraw(self):
+        self.canvas.clear()
+        if len(self.points) < 2:
+            return
+
+        with self.canvas:
+            # Draw the background border envelope bounding box
+            Color(0.2, 0.2, 0.2, 1)
+            Line(rectangle=(self.x, self.y, self.width, self.height), width=1.5)
+
+            # Draw the orange telemetry trend graph curve lines
+            Color(1, 0.65, 0, 1) # Hex Amber Gold
+            scaled_points = []
+            
+            x_step = self.width / 100
+            # Scale y based heavily on the highest current value drawn on the axis
+            max_val = max(max(self.points), 3.0) 
+            
+            for i, val in enumerate(self.points):
+                x_coord = self.x + (i * x_step)
+                # Keep points strictly contained within the visual chart canvas y boundaries
+                y_coord = self.y + ((val - 1.0) / (max_val - 1.0)) * (self.height * 0.8)
+                scaled_points.extend([x_coord, y_coord])
+                
+            Line(points=scaled_points, width=2)
+
+class AviatorSimulator(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.orientation = 'vertical'
+        self.padding = 20
+        self.spacing = 15
+
+        # Initialize internal state telemetry variables
+        self.next_prediction = 1.00
+        self.current_live_value = 1.00
+        self.game_running = False
         
-        main_layout = self  
-        
-        # 1. Header Component Display Frame
-        header = Label(
-            text='[b]Aviator Betika Live Stream v2.5.7[/b]',
-            size_hint_y=0.1,
-            markup=True,
-            font_size='22sp'
-        )
-        main_layout.add_widget(header)
-        
-        # 2. Live Network Engine Connection Status
-        self.status_label = Label(
-            text='Status: Disconnected (Local Simulation)',
-            size_hint_y=0.08,
-            color=(1, 0.3, 0.3, 1)
-        )
-        main_layout.add_widget(self.status_label)
-        
-        # 3. Main Data Analytics Grid Monitor
-        self.metrics_grid = GridLayout(cols=2, spacing=10, size_hint_y=None, height='80dp')
-        self.metrics_grid.add_widget(Label(text="Live Intercepted Odds:", font_size='14sp'))
-        self.lbl_target = Label(text="1.00x", font_size='24sp', bold=True, color=(1, 1, 1, 1))
-        self.metrics_grid.add_widget(self.lbl_target)
-        main_layout.add_widget(self.metrics_grid)
-        
-        # 4. Scroll View Console Window Frame for Log Telemetry
-        scroll = ScrollView(size_hint=(1, 0.6))
-        self.content_layout = GridLayout(cols=1, spacing=5, size_hint_y=None)
-        self.content_layout.bind(minimum_height=self.content_layout.setter('height'))
-        
-        self.log_label = Label(
-            text='[System Initialized]\nWaiting to attach live betika_scraper_py client stream...',
-            markup=True,
-            font_size='14sp',
+        # Generate the first hidden target point right away
+        self.generate_new_prediction()
+
+        # 1. Dashboard Header UI Section
+        self.header_layout = BoxLayout(orientation='horizontal', size_hint_y=0.15)
+        self.title_label = Label(
+            text="AVIATOR SIMULATOR v2.5", 
+            font_size='20sp', 
+            bold=True,
             halign='left',
-            valign='top',
-            size_hint_y=None
+            size_hint_x=0.5
         )
-        self.log_label.bind(size=self._update_text_bounds)
-        self.content_layout.add_widget(self.log_label)
-        scroll.add_widget(self.content_layout)
-        main_layout.add_widget(scroll)
-        
-        # 5. Core Pipeline Operational Control Action Button
-        self.btn_run = Button(
-            text="CONNECT LIVE SCRAPER STREAM",
-            size_hint_y=0.12,
-            background_color=(0.1, 0.6, 0.3, 1),
-            bold=True
+        self.prediction_label = Label(
+            text=f"Calculated Next Target: {self.next_prediction:.2f}x", 
+            font_size='18sp', 
+            color=(0.3, 1, 0.3, 1), # Green Text accent
+            bold=True,
+            halign='right',
+            size_hint_x=0.5
         )
-        self.btn_run.bind(on_press=self.toggle_scraper_connection)
-        main_layout.add_widget(self.btn_run)
-        
-        # Internal configuration storage parameters
-        self.scraper_loop = None
-        self.api_target_endpoint = "https://httpbin.org" # Replace with your hosting server/local node URL
+        self.header_layout.add_widget(self.title_label)
+        self.header_layout.add_widget(self.prediction_label)
+        self.add_widget(self.header_layout)
 
-    def _update_text_bounds(self, instance, size):
-        self.log_label.text_size = (size, None)
-        self.log_label.height = max(self.log_label.texture_size, 300)
+        # 2. Main Center Graph Viewport Canvas Section
+        self.graph_view = TelemetryGraph(size_hint_y=0.7)
+        self.add_widget(self.graph_view)
 
-    def toggle_scraper_connection(self, instance):
-        if not self.scraper_loop:
-            # Safely query your betika_scraper_py pipeline node every 3.0 seconds
-            self.scraper_loop = Clock.schedule_interval(self.fetch_live_scraper_telemetry, 3.0)
-            self.status_label.text = "Status: STREAMING LIVE"
-            self.status_label.color = (0.2, 0.8, 0.2, 1)
-            self.btn_run.text = "DISCONNECT SCRAPER ENGINE"
-            self.btn_run.background_color = (0.9, 0.2, 0.2, 1)
+        # 3. Footer Control Pipeline Trigger Button Section
+        self.control_btn = Button(
+            text="START TELEMETRY PIPELINE", 
+            background_color=(0.1, 0.6, 0.1, 1), # Smooth Emerald Green
+            font_size='16sp',
+            bold=True,
+            size_hint_y=0.15
+        )
+        self.control_btn.bind(on_press=self.toggle_pipeline)
+        self.add_widget(self.control_btn)
+
+    def generate_new_prediction(self):
+        """
+        Uses mathematical inverse distribution to calculate true simulator crash 
+        points (low values appear frequently, high values are rare).
+        """
+        if random.random() < 0.03:  # 3% House Edge Instant Crash
+            self.next_prediction = 1.00
         else:
-            Clock.unschedule(self.scraper_loop)
-            self.scraper_loop = None
-            self.status_label.text = "Status: Disconnected"
-            self.status_label.color = (1, 0.3, 0.3, 1)
-            self.btn_run.text = "CONNECT LIVE SCRAPER STREAM"
-            self.btn_run.background_color = (0.1, 0.6, 0.3, 1)
+            scale_constant = 100
+            raw_roll = random.randint(1, scale_constant)
+            self.next_prediction = round((scale_constant / raw_roll), 2)
+            
+        # Enforce baseline limits
+        if self.next_prediction < 1.00:
+            self.next_prediction = 1.00
 
-    def fetch_live_scraper_telemetry(self, dt):
-        # Asynchronously fetch real-time text arrays without causing mobile UI freeze loops
-        UrlRequest(
-            url=self.api_target_endpoint,
-            on_success=self.on_scraper_data_received,
-            on_failure=self.on_network_request_error,
+    def toggle_pipeline(self, instance):
+        if not self.game_running:
+            # Prepare fresh canvas for running a new prediction
+            self.game_running = True
+            self.current_live_value = 1.00
+            self.graph_view.clear_graph()
+            
+            # Stylize the execution pipeline state
+            self.control_btn.text = "RUNNING... (TAP TO EMERGENCY CRASH)"
+            self.control_btn.background_color = (0.7, 0.1, 0.1, 1) # Ruby Crimson Red
+            
+            # Start looping the frame update function at 60 FPS
+            Clock.schedule_interval(self.update_simulation, 1.0 / 60.0)
+        else:
+            # User manually stops or triggers early crash reset
+            self.end_round(manual=True)
+
+    def update_simulation(self, dt):
+        if not self.game_running:
+            return False
+
+        # Make the curve climb faster over time to mirror real crash game scales
+        climb_acceleration = 0.005 + (self.current_live_value * 0.003)
+        self.current_live_value += climb_acceleration
+        
+        # Stream data coordinates into the graph canvas widget
+        self.graph_view.add_point(self.current_live_value)
+
+        # Update the live text feed showing the active multiplier run
+        self.prediction_label.text = f"Live Run: {self.current_live_value:.2f}x"
+
+        # Check if the climbing graph has met the locally generated target prediction
+        if self.current_live_value >= self.next_prediction:
+            self.end_round(manual=False)
+            return False
+
+    def end_round(self, manual=False):
+        self.game_running = False
+        Clock.unschedule(self.update_simulation)
+        
+        # Display outcome status text strings 
+        if manual:
+            self.prediction_label.text = f"Crashed Manually! Expected: {self.next_prediction:.2f}x"
+        else:
+            self.prediction_label.text = f"CRASHED at {self.next_prediction:.2f}x!"
+        
+        # Reset button status interface
+        self.control_btn.text = "GENERATE NEXT ROUND"
+        self.control_btn.background_color = (0.1, 0.4, 0.8, 1) # Cool Blue Accent
+        
+        # Immediately compute the next standalone target loop sequence ahead of time
+        self.generate_new_prediction()
+        
+        # Schedule showing the new target text briefly after the crash event updates clear
+        Clock.schedule_once(self.display_upcoming_target, 2.5)
+
+    def display_upcoming_target(self, dt):
+        if not self.game_running:
+            self.prediction_label.text = f"Calculated Next Target: {self.next_prediction:.2f}x"
+            self.control_btn.text = "START TELEMETRY PIPELINE"
+            self.control_btn.background_color = (0.1, 0.6, 0.1, 1)
+
+class PredictorApp(App):
+    def build(self):
+        return AviatorSimulator()
+
+if __name__ == '__main__':
+    PredictorApp().run()
             on_error=self.on_network_request_error,
             timeout=2.5
         )
