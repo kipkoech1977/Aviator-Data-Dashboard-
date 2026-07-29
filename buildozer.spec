@@ -19,7 +19,7 @@ source.include_exts = py,png,jpg,kv,atlas
 version = 2.5.7
 
 # (list) Application requirements
-# CRITICAL: Added requests, urllib3, and openssl so Python can process HTTPS mobile/WiFi data
+# Verified dependencies for internet networking
 requirements = python3, kivy, numpy, requests, urllib3, openssl
 
 # (string) Supported orientations
@@ -29,20 +29,21 @@ orientation = portrait
 fullscreen = 0
 
 # (list) Permissions
-# CRITICAL: Grants full access to internet data pipelines via cellular data bundles or WiFi
+# Safely formatted permissions for mobile data and WiFi
 android.permissions = INTERNET, ACCESS_NETWORK_STATE, ACCESS_WIFI_STATE
 
-# (int) Target Android API, should be as high as possible.
+# (int) Target Android API
 android.api = 33
 
-# (int) Minimum API your APK will support.
+# (int) Minimum API your APK will support
 android.minapi = 21
 
 # (string) Android NDK version to use
 android.ndk = 25b
 
-# (bool) CRITICAL: Allows non-HTTPS traffic if your server or API uses unencrypted HTTP endpoints
-android.manifest.application_uses_cleartext_traffic = true
+# (str) python-for-android branch to use
+# CRITICAL: Overrides the broken master parser to allow modern network recipes to compile smoothly
+p4a.branch = develop
 
 # CRITICAL: This allows GitHub Actions to accept SDK licenses automatically during runner build
 android.accept_sdk_license = True
@@ -50,8 +51,8 @@ android.accept_sdk_license = True
 
 [buildozer]
 
-# (int) Log level (0 = error only, 1 = info, 2 = debug and outputs everything)
+# (int) Log level (0 = error only, 1 = info, 2 = debug)
 log_level = 2
 
-# (int) Display warning if buildozer is run as root (1 = True, 0 = False)
+# (int) Display warning if buildozer is run as root
 warn_on_root = 1
