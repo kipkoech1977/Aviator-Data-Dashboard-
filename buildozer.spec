@@ -19,8 +19,8 @@ source.include_exts = py,png,jpg,kv,atlas
 version = 2.5.7
 
 # (list) Application requirements
-# Verified dependencies for internet networking
-requirements = python3, kivy, numpy, requests, urllib3, openssl
+# FIXED: Added certifi, chardet, and idna to prevent python-for-android recipe dependency crashes
+requirements = python3, kivy, numpy, requests, urllib3, certifi, chardet, idna, openssl
 
 # (string) Supported orientations
 orientation = portrait
@@ -29,7 +29,7 @@ orientation = portrait
 fullscreen = 0
 
 # (list) Permissions
-# Safely formatted permissions for mobile data and WiFi
+# FIXED: Safely formats permissions for complete mobile data and WiFi infrastructure access
 android.permissions = INTERNET, ACCESS_NETWORK_STATE, ACCESS_WIFI_STATE
 
 # (int) Target Android API
@@ -42,10 +42,10 @@ android.minapi = 21
 android.ndk = 25b
 
 # (str) python-for-android branch to use
-# CRITICAL: Overrides the broken master parser to allow modern network recipes to compile smoothly
-p4a.branch = develop
+# FIXED: Pinned to master to stabilize recipe downloading on the runner
+p4a.branch = master
 
-# CRITICAL: This allows GitHub Actions to accept SDK licenses automatically during runner build
+# FIXED: Allows the runner script to automatically accept critical compiler licenses
 android.accept_sdk_license = True
 
 
