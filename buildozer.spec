@@ -42,10 +42,7 @@ android.api = 34
 android.minapi = 24
 
 # (str) Android NDK version compatible with Target API 34 compilation
-android.ndk = 25b
-
-# (list) The architectures to build for. Modern devices strictly use arm64-v8a.
-android.archs = arm64-v8a
+android.nd = 25b
 
 [buildozer]
 
