@@ -42,7 +42,7 @@ android.api = 34
 android.minapi = 24
 
 # (str) Android NDK version compatible with Target API 34 compilation
-android.nd = 25b
+android.ndk = 25b
 
 [buildozer]
 
