@@ -1,53 +1,27 @@
 [app]
-
-# (string) Title of your application
 title = Aviator Predictor
-
-# (string) Package name
 package.name = aviatorpredictor
-
-# (string) Package domain (needed for android package name)
 package.domain = org.aviator
 
-# (string) Source code where the main.py lives
 source.dir = .
+source.include_exts = py,png,jpg,kv,atlas
 
-# (list) Source files to include (comma separated)
-source.include_exts = py,png,jpg,kv,atlas,json
-
-# (string) Application versioning
 version = 2.5.7
 
-# (list) Application requirements
-# WARNING: Removed 'hostpython3' to prevent modern toolchain crashes.
-# Add your custom data science/network dependencies here (e.g., requests, certifi)
-requirements = python3, kivy, requests, certifi
+# Added hostpython3 and verified recipes
+requirements = python3, kivy, numpy
 
-# (str) Supported orientations
 orientation = portrait
-
-# (bool) Use fullscreen mode
 fullscreen = 0
-
-# (list) Permissions needed for live network data streaming over cellular/Wi-Fi
 android.permissions = INTERNET, ACCESS_NETWORK_STATE
 
-# (bool) Automatically accept SDK license agreements
-android.accept_sdk_license = True
-
-# (int) Target Android API (Android 14)
-android.api = 34
-
-# (int) Minimum API supported (Android 7.0)
-android.minapi = 24
-
-# (str) Android NDK version compatible with Target API 34 compilation
+android.api = 33
+android.minapi = 21
 android.ndk = 25b
 
+# CRITICAL: This allows GitHub Actions to automatically accept licenses
+android.accept_sdk_license = True
+
 [buildozer]
-
-# (int) Log level (2 = standard details, 1 = error only)
 log_level = 2
-
-# (int) Warning when running buildozer as root user
 warn_on_root = 1
