@@ -9,7 +9,7 @@ source.include_exts = py,png,jpg,kv,json,txt,xml
 
 version = 2.5.7
 
-# Only essentials - no numpy (requires minapi=24 but causes build issues)
+# Minimal requirements - no numpy, scipy, sklearn
 requirements = python3,kivy==2.2.1,requests,python-dateutil,beautifulsoup4
 
 orientation = portrait
@@ -17,9 +17,8 @@ fullscreen = 0
 
 android.permissions = INTERNET,ACCESS_NETWORK_STATE
 
-# Increase minapi to 24 (required by many packages)
 android.api = 33
-android.minapi = 24
+android.minapi = 21
 
 android.archs = arm64-v8a
 
@@ -28,10 +27,8 @@ p4a.bootstrap = sdl2
 log_level = 2
 
 android.ndk = 25b
-android.ndk_api = 24
+android.ndk_api = 21
 
-# Gradle settings
 android.gradle_options = org.gradle.jvmargs=-Xmx1024m
 
-# SDK license
 android.accept_sdk_license = True
