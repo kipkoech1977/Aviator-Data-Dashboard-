@@ -11,32 +11,39 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Install Linux dependencies
         run: |
-          sudo apt update
-
-          sudo apt install -y \
+          sudo apt-get update
+          sudo apt-get install -y \
             git zip unzip \
-            openjdk-17-jdk \
             autoconf automake libtool pkg-config \
-            zlib1g-dev \
-            libncurses5-dev \
-            libffi-dev \
-            libssl-dev \
-            cmake
+            zlib1g-dev libncurses5-dev libncursesw5-dev \
+            libtinfo5 cmake \
+            libffi-dev libssl-dev \
+            build-essential ccache \
+            python3-dev
 
-          python -m pip install --upgrade pip
-
-          pip install \
-            Cython==0.29.36 \
-            buildozer==1.5.0 \
-            python-for-android==2024.01.21
+      - name: Install Buildozer
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install Cython==0.29.36
+          pip install "sh<2.0"
+          pip install buildozer==1.5.0
+          pip install python-for-android==2024.01.21
 
       - name: Clean previous build
         run: |
@@ -45,9 +52,10 @@ jobs:
 
       - name: Build APK
         run: |
-          buildozer android debug
+          buildozer -v android debug
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
-          name: apk
+          name: AviatorPredictor-APK
           path: bin/*.apk
