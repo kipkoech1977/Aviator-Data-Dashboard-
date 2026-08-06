@@ -3,7 +3,7 @@ name: Build Android APK
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # Allows manual triggers from the Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
@@ -12,6 +12,21 @@ jobs:
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-python-version: '3.11'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ccache lld libffi-dev libssl-dev autoconf automake libtool pkg-config zlib1g-dev alt-get
+
+      - name: Install Buildozer and Toolchain Prerequisites
+        run: |
+          pip install --upgrade pip
+          pip install Cython virtualenv buildozer
 
       - name: Get Buildozer Cache
         uses: actions/cache@v4
@@ -22,18 +37,14 @@ jobs:
             ${{ runner.os }}-buildozer-
 
       - name: Build APK with Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        with:
-          command: buildozer -v android debug
-          repository_root: .
-          workdir: .
+        run: |
+          buildozer -v android debug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-debug-apk
           path: bin/*.apk
-            ccache \
             libffi-dev \
             libssl-dev \
             zlib1g-dev \
