@@ -1,39 +1,38 @@
 name: Build Android APK
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  workflow_dispatch: # Allows manual triggers from the Actions tab
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Get Buildozer Cache
+        uses: actions/cache@v4
         with:
-          python-version: "3.10"
+          path: .buildozer
+          key: ${{ runner.os }}-buildozer-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildozer-
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      - name: Build APK with Buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
         with:
-          distribution: temurin
-          java-version: "17"
+          command: buildozer -v android debug
+          repository_root: .
+          workdir: .
 
-      - name: Install Linux Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            git zip unzip \
-            openjdk-17-jdk \
-            autoconf automake libtool \
-            pkg-config \
-            build-essential \
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-apk
+          path: bin/*.apk
             ccache \
             libffi-dev \
             libssl-dev \
