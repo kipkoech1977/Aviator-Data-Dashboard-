@@ -1,48 +1,56 @@
 [app]
 
+# (string) Title of your application
 title = Aviator Predictor
+
+# (string) Package name
 package.name = aviatorpredictor
+
+# (string) Package domain (needed for android package name)
 package.domain = org.aviator
 
+# (string) Source code where the main.py lives
 source.dir = .
-source.include_exts = py,png,jpg,jpeg,kv,json,txt,xml
-source.exclude_dirs = .git,.github,.buildozer,bin,__pycache__
 
+# (list) Source files to include (comma separated)
+source.include_exts = py,png,jpg,kv,atlas,json
+
+# (string) Application versioning
 version = 2.5.7
 
-# Python requirements
-requirements = python3,kivy==2.2.1,requests,beautifulsoup4,python-dateutil
+# (list) Application requirements
+# WARNING: Removed 'hostpython3' to prevent modern toolchain crashes.
+# Add your custom data science/network dependencies here (e.g., requests, certifi)
+requirements = python3, kivy, requests, certifi
 
+# (str) Supported orientations
 orientation = portrait
+
+# (bool) Use fullscreen mode
 fullscreen = 0
 
-# Android permissions
-android.permissions = INTERNET,ACCESS_NETWORK_STATE
+# (list) Permissions needed for live network data streaming over cellular/Wi-Fi
+android.permissions = INTERNET, ACCESS_NETWORK_STATE
 
-# Android SDK
-android.api = 33
-android.minapi = 21
-
-# Architecture
-android.archs = arm64-v8a
-
-# Bootstrap
-p4a.bootstrap = sdl2
-
-# Android NDK
-android.ndk = 25b
-android.ndk_api = 21
-
-# Automatically accept SDK licenses
+# (bool) Automatically accept SDK license agreements
 android.accept_sdk_license = True
 
-# AndroidX support
-android.enable_androidx = True
+# (int) Target Android API (Android 14)
+android.api = 34
 
-# Gradle memory
-android.gradle_options = org.gradle.jvmargs=-Xmx4096m
+# (int) Minimum API supported (Android 7.0)
+android.minapi = 24
 
-# Build logging
+# (str) Android NDK version compatible with Target API 34 compilation
+android.ndk = 25b
+
+# (list) The architectures to build for. Modern devices strictly use arm64-v8a.
+android.archs = arm64-v8a
+
+[buildozer]
+
+# (int) Log level (2 = standard details, 1 = error only)
 log_level = 2
 
+# (int) Warning when running buildozer as root user
 warn_on_root = 1
