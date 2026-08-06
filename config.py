@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 
 # API Configuration
-API_BASE_URL = "https://api.example.com"  # Replace with real API
+API_BASE_URL = "https://real API.com"  # Replace with real API
 API_TIMEOUT = 10
 REFRESH_INTERVAL = 2  # seconds
 
