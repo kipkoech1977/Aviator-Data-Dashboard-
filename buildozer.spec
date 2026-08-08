@@ -6,51 +6,50 @@ title = Aviator Predictor
 # (string) Package name
 package.name = aviatorpredictor
 
-# (string) Package domain (needed for android package name)
+# (string) Package domain (needed for android packaging)
 package.domain = org.aviator
 
-# (string) Source code where the main.py lives
+# (string) Source code directory
 source.dir = .
 
 # (list) Source files to include (comma separated)
-source.include_exts = py,png,jpg,kv,atlas,json
+source.include_exts = py,png,jpg,kv,atlas,json,ttf
 
-# (string) Application versioning
+# (string) Application version
 version = 2.5.7
 
 # (list) Application requirements
-# WARNING: Removed 'hostpython3' to prevent modern toolchain crashes.
-# Add your custom data science/network dependencies here (e.g., requests, certifi)
-requirements = python3, kivy, requests, certifi
+# Added pyjnius so your Python code can bridge over to Android's native system features
+requirements = python3, kivy, hostpython3, openssl, sqlite3, pyjnius
 
-# (str) Supported orientations
+# (string) Supported orientations (valid options are: landscape, portrait, portrait-reverse, landscape-reverse)
 orientation = portrait
 
-# (bool) Use fullscreen mode
+# (int) Fullscreen mode, 0 or 1
 fullscreen = 0
 
-# (list) Permissions needed for live network data streaming over cellular/Wi-Fi
-android.permissions = INTERNET, ACCESS_NETWORK_STATE
+# (list) Android permissions 
+android.permissions = INTERNET
 
-# (bool) Automatically accept SDK license agreements
+# (bool) Accept SDK license without operator input
 android.accept_sdk_license = True
 
-# (int) Target Android API (Android 14)
+# Target modern API 34 with an optimized NDK match
 android.api = 34
-
-# (int) Minimum API supported (Android 7.0)
 android.minapi = 24
+android.ndk = 26b
 
-# (str) Android NDK version compatible with Target API 34 compilation
-android.ndk = 25b
+# Modern Android devices require arm64-v8a architectures to install
+android.archs = arm64-v8a, armeabi-v7a
 
-# (list) The architectures to build for. Modern devices strictly use arm64-v8a.
-android.archs = arm64-v8a
+# (list) List of services to declare
+# This entry tells Buildozer to pack 'service.py' as a persistent background engine
+services = MyWidgetService:service.py
 
 [buildozer]
 
-# (int) Log level (2 = standard details, 1 = error only)
+# (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
 log_level = 2
 
-# (int) Warning when running buildozer as root user
+# (int) Display warning if buildozer is run as root (0 = False, 1 = True)
 warn_on_root = 1
